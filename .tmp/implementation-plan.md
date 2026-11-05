@@ -1,0 +1,5 @@
+- [ ] Port existing finance modules to Next.js
+- [ ] Persist all operational data with ownership and validated mutations
+- [ ] Reconcile observed cash without treating corrections as income
+- [ ] Mobile-first navigation, cards, forms and touch targets
+- [ ] Verify production delivery: route table and fresh production data

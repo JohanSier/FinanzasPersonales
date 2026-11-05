@@ -1,0 +1,502 @@
+[
+  {
+    "cell": "A1",
+    "value": "Pagos de todos los meses",
+    "formula": ""
+  },
+  {
+    "cell": "A2",
+    "value": "CATEGORÍAS",
+    "formula": ""
+  },
+  {
+    "cell": "B2",
+    "value": "VALOR",
+    "formula": ""
+  },
+  {
+    "cell": "D2",
+    "value": "Spotify",
+    "formula": ""
+  },
+  {
+    "cell": "E2",
+    "value": "10.0",
+    "formula": ""
+  },
+  {
+    "cell": "F2",
+    "value": "DINERO VIRTUAL",
+    "formula": ""
+  },
+  {
+    "cell": "G2",
+    "value": "DINERO EN BLACK BOX",
+    "formula": ""
+  },
+  {
+    "cell": "H2",
+    "value": "Cuentas por Cobrar",
+    "formula": ""
+  },
+  {
+    "cell": "I2",
+    "value": "Gixxer SF 150 FI",
+    "formula": ""
+  },
+  {
+    "cell": "J2",
+    "value": "TOTAL DINERO",
+    "formula": ""
+  },
+  {
+    "cell": "A3",
+    "value": "Plan Celular",
+    "formula": ""
+  },
+  {
+    "cell": "B3",
+    "value": "45.0",
+    "formula": ""
+  },
+  {
+    "cell": "D3",
+    "value": "Libros",
+    "formula": ""
+  },
+  {
+    "cell": "E3",
+    "value": "100.0",
+    "formula": ""
+  },
+  {
+    "cell": "F3",
+    "value": "1700.0",
+    "formula": ""
+  },
+  {
+    "cell": "G3",
+    "value": "120000.0",
+    "formula": ""
+  },
+  {
+    "cell": "H3",
+    "value": "2670.0",
+    "formula": ""
+  },
+  {
+    "cell": "I3",
+    "value": "Total: 12,590,000 +\n1.000.000 (papeles)",
+    "formula": ""
+  },
+  {
+    "cell": "J3",
+    "value": "4'500.000",
+    "formula": ""
+  },
+  {
+    "cell": "A4",
+    "value": "Buses",
+    "formula": ""
+  },
+  {
+    "cell": "B4",
+    "value": "100.0",
+    "formula": ""
+  },
+  {
+    "cell": "C4",
+    "value": "G.OBLGATORIOS: \nU 1.100.000+ 223.000",
+    "formula": ""
+  },
+  {
+    "cell": "D4",
+    "value": "Cursos",
+    "formula": ""
+  },
+  {
+    "cell": "E4",
+    "value": "70.0",
+    "formula": ""
+  },
+  {
+    "cell": "G4",
+    "value": "Last Check: 13 de Sept 2026",
+    "formula": ""
+  },
+  {
+    "cell": "I4",
+    "value": "13.590.000",
+    "formula": ""
+  },
+  {
+    "cell": "A5",
+    "value": "Casa",
+    "formula": ""
+  },
+  {
+    "cell": "B5",
+    "value": "300.0",
+    "formula": ""
+  },
+  {
+    "cell": "H5",
+    "value": "Le preste 2 millones a mis papás para sacar el carro\n\n28 de Agosto",
+    "formula": ""
+  },
+  {
+    "cell": "A6",
+    "value": "U.",
+    "formula": ""
+  },
+  {
+    "cell": "B6",
+    "value": "1100.0",
+    "formula": ""
+  },
+  {
+    "cell": "C6",
+    "value": "Dinero Mensual Dispo",
+    "formula": ""
+  },
+  {
+    "cell": "D6",
+    "value": "Abrir cuenta de ahorros en NU esta solo para dinero de inversion",
+    "formula": ""
+  },
+  {
+    "cell": "E6",
+    "value": "Me pagan los festivos a \n169.371",
+    "formula": ""
+  },
+  {
+    "cell": "A7",
+    "value": "Dinero para inversion",
+    "formula": ""
+  },
+  {
+    "cell": "B7",
+    "value": "750.0",
+    "formula": ""
+  },
+  {
+    "cell": "C7",
+    "value": "2100000 - 700000 invst",
+    "formula": ""
+  },
+  {
+    "cell": "A8",
+    "value": "TOTAL",
+    "formula": ""
+  },
+  {
+    "cell": "B8",
+    "value": "2295",
+    "formula": "SUM(B1:B7)"
+  },
+  {
+    "cell": "A11",
+    "value": "MES",
+    "formula": ""
+  },
+  {
+    "cell": "B11",
+    "value": "Dinero",
+    "formula": ""
+  },
+  {
+    "cell": "C11",
+    "value": "Gastos Esperados",
+    "formula": ""
+  },
+  {
+    "cell": "D11",
+    "value": "Gastos",
+    "formula": ""
+  },
+  {
+    "cell": "E11",
+    "value": "Termina Con:",
+    "formula": ""
+  },
+  {
+    "cell": "F11",
+    "value": "Saldo Ideal",
+    "formula": ""
+  },
+  {
+    "cell": "H11",
+    "value": "Ahorro",
+    "formula": ""
+  },
+  {
+    "cell": "A12",
+    "value": "Enero",
+    "formula": ""
+  },
+  {
+    "cell": "B12",
+    "value": "2034459.0",
+    "formula": ""
+  },
+  {
+    "cell": "C12",
+    "value": "Pase, Cuota Febrero U",
+    "formula": ""
+  },
+  {
+    "cell": "D12",
+    "value": "Difusor: -75.000,\nFortune Cookies: -8.000\nMagic: -20.000 \nFun: -100.000.\nOnn Regalo Mami: -110.000 \nNU: -38.250\nkin Care: -79.300\nStake: -100.000 \nHamburguer: -24.500",
+    "formula": ""
+  },
+  {
+    "cell": "E12",
+    "value": "1500.0",
+    "formula": ""
+  },
+  {
+    "cell": "A13",
+    "value": "Febrero",
+    "formula": ""
+  },
+  {
+    "cell": "B13",
+    "value": "1500.0",
+    "formula": ""
+  },
+  {
+    "cell": "D13",
+    "value": "-100k Gafas\n-58k Salida Herrera",
+    "formula": ""
+  },
+  {
+    "cell": "A14",
+    "value": "Abril",
+    "formula": ""
+  },
+  {
+    "cell": "B14",
+    "value": "Empecé a trabajar 🥹",
+    "formula": ""
+  },
+  {
+    "cell": "C14",
+    "value": "Promesas Pago de NU (gastos usuales)",
+    "formula": ""
+  },
+  {
+    "cell": "D14",
+    "value": "Quincena 1\n-740k Promesas \n-45k Cel DONE\n-70k Buses DONE\n - 230k Nu DONE\n-100 Fun Nuestro Bogota\nTotal: 935K (Restante 630k)\n\nQuincena 2\n-1100k U\n-70k Buses\n(Restante 630K)\n\nTotal: 1.300.000 ",
+    "formula": ""
+  },
+  {
+    "cell": "E14",
+    "value": "1200000.0",
+    "formula": ""
+  },
+  {
+    "cell": "I14",
+    "value": "600.0",
+    "formula": ""
+  },
+  {
+    "cell": "J14",
+    "value": "1700000.0",
+    "formula": ""
+  },
+  {
+    "cell": "A15",
+    "value": "Mayo",
+    "formula": ""
+  },
+  {
+    "cell": "D15",
+    "value": "Quincena 1\nDevengado: 1,893,420.\n-45k Cel DONE\n-50k Buses DONE\n- 150k Ayuda House DONE\n- Gorra 150K DONE \n-221K NU\n- Teclado 170K\n- 50K Sobres\n- 52k Harry Potter\n- 30k Audifonos\n- 98k Amiri Jacket\n- 52K Reloj Poedagar\n- 100K Power Bank\n\nTotal Gastado: 1,068.000\nAcumulado: 825.420\n\nQuincena 2\nDevengado: 1.909.000\n\n- 150k House DONE\n- NU 125K DONE\n\nTotal Gastado: 325.000\nAcumulado: 1.838.420\n\nSaldo Bancolombia Fin de Mes:\n2.100.420",
+    "formula": ""
+  },
+  {
+    "cell": "F15",
+    "value": "2600000.0",
+    "formula": ""
+  },
+  {
+    "cell": "H15",
+    "value": "700000.0",
+    "formula": ""
+  },
+  {
+    "cell": "I15",
+    "value": "220.0",
+    "formula": ""
+  },
+  {
+    "cell": "J15",
+    "value": "-935000.0",
+    "formula": ""
+  },
+  {
+    "cell": "A16",
+    "value": "Junio",
+    "formula": ""
+  },
+  {
+    "cell": "C16",
+    "value": " \nSacar Pase 1200.000",
+    "formula": ""
+  },
+  {
+    "cell": "D16",
+    "value": "Quincena 1\nDevengado: 2.510.000\n-45k Cel DONE\n-50k Buses DONE\n--\n- 157k Cine Madre DONE\nAcumulado: 3.900.000\n\nQuincena 2\nDevengado: 1.830.000\n-850k U\n-70k Buses\n- 150k Casa DONE\n- 86k NU\n\nSaldo Bancolombia \nFin de Mes:\n3.300.000",
+    "formula": ""
+  },
+  {
+    "cell": "F16",
+    "value": "4000000.0",
+    "formula": ""
+  },
+  {
+    "cell": "G16",
+    "value": "PRIMA +500.000\n15 de junio",
+    "formula": ""
+  },
+  {
+    "cell": "H16",
+    "value": "1400000.0",
+    "formula": ""
+  },
+  {
+    "cell": "I16",
+    "value": "45.0",
+    "formula": ""
+  },
+  {
+    "cell": "J16",
+    "value": "765000.0",
+    "formula": ""
+  },
+  {
+    "cell": "A17",
+    "value": "Julio",
+    "formula": ""
+  },
+  {
+    "cell": "D17",
+    "value": "Quincena 1\nDevengado: 2.445.000\n-40k Cel DONE\n-50k Buses DONE\n-150K Casa DONE\n-208K Nu DONE\n- 500k Otra parte del curso\n- 480K Monitor DONE\n- 119K Caja Fuerte DONE\n- 24K Donas Familia DONE\n- Cancelar datacredito DONE\nGastos del Mes: 1,571,000\n\nAcumulado: ?????\n\nQuincena 2\nDevengado: 2.100.000\n-1'100k U\n-50k Buses DONE\n- 150k Casa DONE\nNU: 90K DONE\n\nRestante: 700K\n\nSaldo Bancolombia \nEsperado Fin de Mes:\n4.500.000",
+    "formula": ""
+  },
+  {
+    "cell": "F17",
+    "value": "5400000.0",
+    "formula": ""
+  },
+  {
+    "cell": "H17",
+    "value": "2100000.0",
+    "formula": ""
+  },
+  {
+    "cell": "I17",
+    "value": "70.0",
+    "formula": ""
+  },
+  {
+    "cell": "J17",
+    "value": "530000.0",
+    "formula": ""
+  },
+  {
+    "cell": "A18",
+    "value": "Agosto",
+    "formula": ""
+  },
+  {
+    "cell": "D18",
+    "value": "Quincena 1\nDevengado: 1.900.000\n-40k Cel DONE\n-50k Buses DONE\n-150K Casa DONE \n-800K Casco y Guantes DONE\n-100k Timberland DONE\n-76k Buso North Face DONE\n- 40K Pizza Cami DONE\n- 300K Buzo y Pantalon DONE \n- 245K Certificado Médico DONE\nGastos del Mes:\n\nAcumulado: 1.600.000\n\nQuincena 2\nDevengado: 1.900.000\n-1'100k U\n-50k Buses DONE\n- 150k Casa DONE\n\nRestante: 600K\n\nSaldo Bancolombia \nEsperado Fin de Mes:\n5.500.000",
+    "formula": ""
+  },
+  {
+    "cell": "F18",
+    "value": "6800000.0",
+    "formula": ""
+  },
+  {
+    "cell": "H18",
+    "value": "2800000.0",
+    "formula": ""
+  },
+  {
+    "cell": "A19",
+    "value": "Septiembre",
+    "formula": ""
+  },
+  {
+    "cell": "D19",
+    "value": "Quincena 1\nDevengado: 1.800.000\n-40k Cel\n-50k Buses DONE\n-150K Casa \n-50k NU\n- 272K Licencia\n- 100k Granizados \n- Tokyo 400k\nGastos del Mes:\n\nAcumulado: ......\n\nQuincena 2\nDevengado: 1.800.000\n-1'100k U\n-50k Buses \n- 150k Casa \n\nRestante: ....\n\nSaldo Bancolombia \nEsperado Fin de Mes:\n6.500.000",
+    "formula": ""
+  },
+  {
+    "cell": "F19",
+    "value": "8200000.0",
+    "formula": ""
+  },
+  {
+    "cell": "H19",
+    "value": "3500000.0",
+    "formula": ""
+  },
+  {
+    "cell": "A20",
+    "value": "Octubre",
+    "formula": ""
+  },
+  {
+    "cell": "F20",
+    "value": "9600000.0",
+    "formula": ""
+  },
+  {
+    "cell": "H20",
+    "value": "4200000.0",
+    "formula": ""
+  },
+  {
+    "cell": "A21",
+    "value": "Noviembre",
+    "formula": ""
+  },
+  {
+    "cell": "F21",
+    "value": "1.1E7",
+    "formula": ""
+  },
+  {
+    "cell": "H21",
+    "value": "4900000.0",
+    "formula": ""
+  },
+  {
+    "cell": "A22",
+    "value": "Diciembre",
+    "formula": ""
+  },
+  {
+    "cell": "F22",
+    "value": "1.24E7",
+    "formula": ""
+  },
+  {
+    "cell": "G22",
+    "value": "PRIMA +1.170.000\n20 de Diciembre",
+    "formula": ""
+  },
+  {
+    "cell": "H22",
+    "value": "5600000.0",
+    "formula": ""
+  },
+  {
+    "cell": "G24",
+    "value": "Suma de todos festivos \nde Septiembre a Diciembre\n\nTOTAL: 677.484",
+    "formula": ""
+  }
+]
