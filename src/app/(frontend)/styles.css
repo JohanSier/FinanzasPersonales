@@ -3982,3 +3982,21 @@ input[type='checkbox'] {
     transition-duration: 0.01ms !important;
   }
 }
+
+@media (max-width: 680px) {
+  .content-stack > .mobile-hero {
+    order: -4;
+  }
+  .content-stack > .university-banner {
+    order: -3;
+  }
+  .content-stack > .recent-panel {
+    order: -2;
+  }
+  .content-stack > .dashboard-bottom {
+    display: contents;
+  }
+  .content-stack > .dashboard-bottom > .upcoming-panel {
+    order: -1;
+  }
+}

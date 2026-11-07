@@ -653,7 +653,7 @@ export default function App({
     <>
       <section
         aria-label="Tu saldo disponible"
-        className="overflow-hidden rounded-[24px] bg-[#245e43] p-6 text-white shadow-[0_12px_30px_#245e4315] min-[681px]:hidden"
+        className="mobile-hero overflow-hidden rounded-[24px] bg-[#245e43] p-6 text-white shadow-[0_12px_30px_#245e4315] min-[681px]:hidden"
       >
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-[#c8ddbb]">Tu dinero disponible</span>
@@ -711,7 +711,7 @@ export default function App({
         !monthly.some((m) => m.reference === `REC-01-${month}`) && (
           <button
             onClick={() => openTransaction('Gasto', `REC-01-${month}`)}
-            className="flex w-full items-center gap-3 rounded-2xl border border-[#e5e8d7] bg-[#f4f5e9] p-4 text-left transition active:bg-[#e8f0df] sm:gap-4 sm:px-5"
+            className="university-banner flex w-full items-center gap-3 rounded-2xl border border-[#e5e8d7] bg-[#f4f5e9] p-4 text-left transition active:bg-[#e8f0df] sm:gap-4 sm:px-5"
           >
             <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-[#e0e7cd] bg-[#eaf0db] text-[#8ba66b]">
               <Landmark size={20} strokeWidth={1.5} />
@@ -962,6 +962,7 @@ export default function App({
         <Panel
           title="Próximos pagos"
           subtitle="Tus compromisos, siempre a la vista."
+          className="upcoming-panel"
           action={
             <button className="text-button" onClick={() => navigate('Próximos Gastos')}>
               Ver todos <ArrowRight size={14} />
