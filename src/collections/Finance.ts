@@ -1,5 +1,7 @@
 import { APIError, type Access, type CollectionConfig, type Field } from 'payload'
 import {
+  accounts,
+  accountFor,
   categories,
   methods,
   summarize,
@@ -204,6 +206,7 @@ export const FinanceMovements: CollectionConfig = {
         'Abono recibido',
         'Ahorro',
         'Retiro de ahorro',
+        'Retiro',
         'Interés',
         'Inversión',
         'Pago de deuda',
@@ -221,6 +224,7 @@ export const FinanceMovements: CollectionConfig = {
     amount(),
     { name: 'category', type: 'text', required: true, maxLength: 100 },
     { name: 'method', type: 'select', required: true, options: methods },
+    { name: 'account', label: 'Cuenta', type: 'select', options: accounts },
     { name: 'reference', type: 'text', maxLength: 100 },
     {
       name: 'balanceAfter',
@@ -315,6 +319,8 @@ export const FinanceMovements: CollectionConfig = {
           )
         if (data.type === 'Retiro de ahorro' && data.amount > s.savings)
           throw new APIError('El retiro supera tus ahorros.', 400)
+        if (data.type === 'Retiro' && data.amount > s.cashByAccount.Bancolombia)
+          throw new APIError('El retiro supera tu saldo en Bancolombia.', 400)
         if (data.type === 'Pago de deuda' && !['NU', 'MOTO'].includes(data.reference))
           throw new APIError('Selecciona una obligación válida.', 400)
         if (
@@ -385,6 +391,7 @@ export function toMovement(d: {
   amount: number
   category: string
   method: string
+  account?: string | null
   reference?: string | null
   createdAt: string
   balanceAfter?: number | null
@@ -399,6 +406,7 @@ export function toMovement(d: {
     amount: d.amount,
     category: d.category,
     method: d.method,
+    account: d.account || undefined,
     reference: d.reference || '',
     created: d.createdAt,
     balanceAfter: d.balanceAfter,

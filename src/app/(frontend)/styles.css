@@ -694,6 +694,46 @@ h1 {
 .stat-card.dark .stat-bottom > span:last-child {
   color: #b6cea4;
 }
+.balance-accounts {
+  margin-top: 14px;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+  padding-top: 10px;
+  display: grid;
+  gap: 7px;
+}
+.balance-accounts > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.balance-accounts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #b6cea4;
+}
+.balance-accounts strong {
+  color: #fff;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.balance-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.balance-dot.efectivo {
+  background: #c8ddbb;
+}
+.balance-dot.nequi {
+  background: #cdb9ec;
+}
+.balance-dot.bancolombia {
+  background: #f0b9c4;
+}
 .stat-top {
   display: flex;
   align-items: center;

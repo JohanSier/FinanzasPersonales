@@ -461,6 +461,7 @@ export interface FinanceMovement {
     | 'Abono recibido'
     | 'Ahorro'
     | 'Retiro de ahorro'
+    | 'Retiro'
     | 'Interés'
     | 'Inversión'
     | 'Pago de deuda'
@@ -469,7 +470,8 @@ export interface FinanceMovement {
   debtor?: string | null;
   amount: number;
   category: string;
-  method: 'Débito Bancolombia' | 'Tarjeta Nu' | 'Efectivo' | 'Transferencia' | 'Otro';
+  method: 'Débito Bancolombia' | 'Débito Nu' | 'Nequi' | 'Tarjeta Nu' | 'Efectivo' | 'Transferencia' | 'Otro';
+  account?: ('Efectivo' | 'Nequi' | 'Bancolombia' | 'Nu') | null;
   reference?: string | null;
   balanceAfter?: number | null;
   cashAdjustment?: number | null;
@@ -800,6 +802,7 @@ export interface FinanceMovementsSelect<T extends boolean = true> {
   amount?: T;
   category?: T;
   method?: T;
+  account?: T;
   reference?: T;
   balanceAfter?: T;
   cashAdjustment?: T;

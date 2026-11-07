@@ -4,6 +4,8 @@ import { appAuth } from '@/lib/app-auth'
 import { getPayloadClient } from '@/lib/payload'
 import { financeSession, loadFinanceData } from './data'
 import {
+  accounts,
+  accountFor,
   categories,
   methods,
   type FinanceData,
@@ -117,6 +119,7 @@ export async function saveMovement(input: Movement): Promise<Result> {
       'Abono recibido',
       'Ahorro',
       'Retiro de ahorro',
+      'Retiro',
       'Interés',
       'Inversión',
       'Pago de deuda',
@@ -166,6 +169,9 @@ export async function saveMovement(input: Movement): Promise<Result> {
           amount: input.amount,
           category: string(input.category, 100) || 'Otros',
           method: input.method as FinanceMovement['method'],
+          account: (input.account && accounts.includes(input.account)
+            ? input.account
+            : accountFor(input.method)) as FinanceMovement['account'],
           reference: string(input.reference, 100),
           balanceAfter: input.balanceAfter ?? null,
           reconciliationNote: string(input.reconciliationNote, 300),
@@ -312,6 +318,9 @@ export async function updateMovement(input: Movement): Promise<Result> {
         amount: input.amount,
         category: string(input.category, 100) || 'Otros',
         method: input.method as FinanceMovement['method'],
+        account: (input.account && accounts.includes(input.account)
+          ? input.account
+          : accountFor(input.method)) as FinanceMovement['account'],
       },
     })
     return await updated()

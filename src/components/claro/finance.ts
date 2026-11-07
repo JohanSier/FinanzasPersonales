@@ -28,13 +28,31 @@ export const categories = [
   'Viajes',
   'Otros',
 ]
-export const methods = ['Débito Bancolombia', 'Tarjeta Nu', 'Efectivo', 'Transferencia', 'Otro']
+export const methods = [
+  'Débito Bancolombia',
+  'Débito Nu',
+  'Nequi',
+  'Tarjeta Nu',
+  'Efectivo',
+]
+export const accounts = ['Efectivo', 'Nequi', 'Bancolombia', 'Nu']
+export const accountFor = (method: string, account?: string | null) =>
+  account && accounts.includes(account)
+    ? account
+    : method === 'Efectivo'
+      ? 'Efectivo'
+      : method === 'Nequi'
+        ? 'Nequi'
+        : method === 'Débito Nu'
+          ? 'Nu'
+          : 'Bancolombia'
 export type MovementType =
   | 'Ingreso'
   | 'Gasto'
   | 'Abono recibido'
   | 'Ahorro'
   | 'Retiro de ahorro'
+  | 'Retiro'
   | 'Interés'
   | 'Inversión'
   | 'Pago de deuda'
@@ -47,6 +65,7 @@ export type Movement = {
   amount: number
   category: string
   method: string
+  account?: string
   reference: string
   created: string
   debtor?: string
@@ -112,7 +131,7 @@ export function summarize(
     rows.filter((m) => m.type === type).reduce((a, m) => a + m.amount, 0)
   const cashImpact = (m: Movement) => {
     if (['Ingreso', 'Abono recibido', 'Retiro de ahorro'].includes(m.type)) return m.amount
-    if (m.type === 'Interés') return 0
+    if (m.type === 'Retiro' || m.type === 'Interés') return 0
     if (m.type === 'Gasto' && m.method === 'Tarjeta Nu') return 0
     return -m.amount
   }
@@ -130,12 +149,29 @@ export function summarize(
     .reduce((s, m) => s + m.amount, 0)
   const cash =
     config.openingCash + movements.reduce((s, m) => s + cashImpact(m) + (m.cashAdjustment || 0), 0)
+  const cashByAccount: Record<string, number> = {
+    Efectivo: 0,
+    Nequi: 0,
+    Bancolombia: config.openingCash,
+    Nu: 0,
+  }
+  for (const m of movements) {
+    if (m.type === 'Retiro') {
+      const destination = m.account && accounts.includes(m.account) ? m.account : 'Efectivo'
+      cashByAccount.Bancolombia -= m.amount
+      cashByAccount[destination] += m.amount
+      continue
+    }
+    cashByAccount[accountFor(m.method, m.account)] += cashImpact(m)
+    if (m.cashAdjustment) cashByAccount.Bancolombia += m.cashAdjustment
+  }
   const receivables =
     (loans ? loans.reduce((a, d) => a + d.amount, 0) : total('Préstamo')) - total('Abono recibido')
   // Payments must be split into principal and interest before reducing moto principal.
   const liabilities = config.motoPrincipal + config.nuAdvance + cardPurchases - cardPaid
   return {
     cash,
+    cashByAccount,
     received,
     expenses,
     savings,

@@ -64,6 +64,8 @@ import {
   months,
   categories,
   methods,
+  accounts,
+  accountFor,
   summarize as calculateSummary,
   repaymentBalance as calculateRepaymentBalance,
   amortize,
@@ -105,7 +107,7 @@ const primaryNav: {
     items: [
       { name: 'Ingresos', icon: ArrowDownLeft },
       { name: 'Gastos', icon: ArrowUpRight },
-      { name: 'Gastos fijos', icon: RefreshCw },
+      { name: 'Próximos Gastos', icon: RefreshCw },
       { name: 'Cuentas por cobrar', icon: HandCoins, count: '8' },
       { name: 'Cuentas por pagar', icon: CreditCard },
     ],
@@ -133,7 +135,7 @@ const descriptions: Record<string, string> = {
   Movimientos: 'Cada movimiento cuenta. Todo tu dinero, en un solo lugar.',
   Ingresos: 'Distingue lo que esperas de lo que ya está en tu cuenta.',
   Gastos: 'Entiende en qué se va tu dinero, sin perder el detalle.',
-  'Gastos fijos': 'Menos sorpresas. Más control sobre tus compromisos.',
+  'Próximos Gastos': 'Menos sorpresas. Más control sobre tus compromisos.',
   Quincenas: 'Dale un propósito a cada quincena, antes de gastarla.',
   'Cuentas por cobrar': 'Lo que te deben también importa. Pero todavía no es efectivo.',
   'Cuentas por pagar': 'Un plan claro para vivir con menos deudas.',
@@ -175,7 +177,7 @@ export default function App({
     new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' }).slice(0, 7),
   )
   const movements = data.movements
-  const fixed = page === 'Gastos fijos' || page === 'Proyecciones' ? data.fixed : (data.plans[month] ?? data.fixed)
+  const fixed = page === 'Próximos Gastos' || page === 'Proyecciones' ? data.fixed : (data.plans[month] ?? data.fixed)
   const goals = data.goals
   const [modal, setModal] = useState<
     | 'transaction'
@@ -214,6 +216,7 @@ export default function App({
   const [reconcile, setReconcile] = useState(false)
   const [entryAmount, setEntryAmount] = useState(0)
   const [entryMethod, setEntryMethod] = useState(methods[0])
+  const [entryAccount, setEntryAccount] = useState(accounts[2])
   const [confirmedBalance, setConfirmedBalance] = useState(0)
   const inFlight = useRef(false)
   const transactionKey = useRef('')
@@ -331,6 +334,7 @@ export default function App({
     const preset = fixed.find((f) => ref === `${f.id}-${month}`)
     setEntryAmount(preset?.amount || (ref.startsWith('NOM-') ? config.monthlyIncome / 2 : 0))
     setEntryMethod(preset?.id === 'REC-04' ? 'Tarjeta Nu' : methods[0])
+    setEntryAccount(t === 'Retiro' ? 'Efectivo' : accountFor(preset?.id === 'REC-04' ? 'Tarjeta Nu' : methods[0]))
     setConfirmedBalance(s.cash)
     setModal('transaction')
   }
@@ -395,6 +399,10 @@ export default function App({
       notify('El retiro supera el saldo de tus ahorros.')
       return
     }
+    if (type === 'Retiro' && amount > s.cashByAccount.Bancolombia) {
+      notify('El retiro supera tu saldo en Bancolombia.')
+      return
+    }
     if (
       type === 'Pago de deuda' &&
       ref === 'NU' &&
@@ -416,8 +424,10 @@ export default function App({
       type,
       description: String(d.get('description')).trim(),
       amount,
-      category: String(d.get('category') || 'Otros'),
-      method: String(d.get('method')),
+      category:
+        type === 'Retiro' ? 'Transferencias' : String(d.get('category') || 'Otros'),
+      method: type === 'Retiro' ? 'Débito Bancolombia' : String(d.get('method')),
+      account: String(d.get('account')),
       reference: ref,
       created: new Date().toISOString(),
       ...(type === 'Préstamo' ? { debtor: String(d.get('debtor') || '').trim() } : {}),
@@ -491,6 +501,7 @@ export default function App({
       amount: Number(d.get('amount')),
       category: String(d.get('category') || 'Otros'),
       method: String(d.get('method')),
+      account: String(d.get('account')),
     }
     if (await commit(() => updateMovement(item), 'Movimiento actualizado.')) setModal(null)
   }
@@ -502,6 +513,7 @@ export default function App({
     tone = 'green',
     extra?: string,
     dark = false,
+    children?: React.ReactNode,
   ) => (
     <article className={`stat-card${dark ? ' dark' : ''}`}>
       <div className="stat-top">
@@ -516,6 +528,7 @@ export default function App({
         {extra ? <Badge tone={tone}>{extra}</Badge> : <span className={`stat-dot ${tone}`} />}
         <span>{sub}</span>
       </div>
+      {children}
     </article>
   )
   const actionButton = (label = 'Nuevo movimiento', t: MovementType = 'Gasto') => (
@@ -637,6 +650,17 @@ export default function App({
           <ShieldCheck size={12} />
           Saldo real + movimientos. Nunca dinero esperado.
         </div>
+        <div className="balance-accounts">
+          {accounts.map((a) => (
+            <div key={a}>
+              <span>
+                <i className={`balance-dot ${a.toLowerCase()}`} />
+                {a}
+              </span>
+              <strong>{cop(s.cashByAccount[a] ?? 0)}</strong>
+            </div>
+          ))}
+        </div>
         <div className="mt-6 grid grid-cols-3 gap-2 border-t border-white/12 pt-5">
           {(
             [
@@ -692,6 +716,17 @@ export default function App({
           'green',
           undefined,
           true,
+          <div className="balance-accounts">
+            {accounts.map((a) => (
+              <div key={a}>
+                <span>
+                  <i className={`balance-dot ${a.toLowerCase()}`} />
+                  {a}
+                </span>
+                <strong>{cop(s.cashByAccount[a] ?? 0)}</strong>
+              </div>
+            ))}
+          </div>,
         )}
         {stat(
           'Ingresos del mes',
@@ -773,7 +808,7 @@ export default function App({
             <button
               className="icon-button"
               title="Editar presupuesto"
-              onClick={() => navigate('Gastos fijos')}
+              onClick={() => navigate('Próximos Gastos')}
             >
               <SlidersHorizontal size={17} />
             </button>
@@ -830,7 +865,7 @@ export default function App({
             <div>
               <span>
                 <i className="bg-[#18866b]" />
-                Esenciales
+                Fijos
               </span>
               <strong>{cop(distribution[0])}</strong>
             </div>
@@ -896,7 +931,7 @@ export default function App({
           title="Próximos pagos"
           subtitle="Tus compromisos, siempre a la vista."
           action={
-            <button className="text-button" onClick={() => navigate('Gastos fijos')}>
+            <button className="text-button" onClick={() => navigate('Próximos Gastos')}>
               Ver todos <ArrowRight size={14} />
             </button>
           }
@@ -1133,12 +1168,12 @@ export default function App({
         </>
       )
     }
-    if (page === 'Gastos fijos')
+    if (page === 'Próximos Gastos')
       return (
         <>
           <div className="stats-grid three">
             {stat('Compromisos mensuales', totalFixed, RefreshCw, 'Estimaciones editables')}
-            {stat('Esenciales', essential, ShieldCheck, 'Base para el fondo de emergencia', 'blue')}
+            {stat('Fijos', essential, ShieldCheck, 'Base para el fondo de emergencia', 'blue')}
             {stat(
               'Margen mensual previsto',
               config.monthlyIncome - totalFixed,
@@ -1147,8 +1182,8 @@ export default function App({
             )}
           </div>
           <Panel
-            title="Tu presupuesto recurrente"
-            subtitle="Los cambios se aplican a nuevas descargas. Conserva tus archivos anteriores."
+            title="Próximos gastos"
+            subtitle="Programa lo que se repite cada mes."
             action={
               <button
                 className="button primary"
@@ -1158,7 +1193,7 @@ export default function App({
                 }}
               >
                 <Plus size={17} />
-                Agregar gasto fijo
+                Agregar gasto
               </button>
             }
           >
@@ -1177,7 +1212,7 @@ export default function App({
                 f.category,
                 cop(f.amount),
                 f.day ? `Día ${f.day}` : 'Por definir',
-                f.essential ? 'Esencial' : 'Personal',
+                f.essential ? 'Fijo' : 'Variable',
                 <div className="flex items-center gap-2">
                   {isFixedPaid(f) && (
                     <Badge tone="green">
@@ -1410,7 +1445,7 @@ export default function App({
               'Meta de emergencia',
               essential * 3,
               ShieldCheck,
-              'Tres meses de compromisos esenciales',
+              'Tres meses de gastos fijos',
               'purple',
             )}
           </div>
@@ -2229,10 +2264,11 @@ export default function App({
                     'Préstamo',
                     'Abono recibido',
                     'Ahorro',
-                    'Retiro de ahorro',
+                    'Retiro',
                     'Interés',
                     'Inversión',
                     'Pago de deuda',
+                    ...(type === 'Retiro de ahorro' ? (['Retiro de ahorro'] as MovementType[]) : []),
                   ] as MovementType[]
                 ).map((t) => (
                   <option key={t}>{t}</option>
@@ -2307,39 +2343,62 @@ export default function App({
               />
             </div>
             <div className="form-grid">
-              <div className="field">
-                <label>Categoría</label>
-                <select
-                  key={type}
-                  name="category"
-                  defaultValue={
-                    matchedFixed?.category ||
-                    (type === 'Ingreso' ? 'Salario' : type === 'Inversión' ? 'ETF' : 'Otros')
-                  }
-                >
-                  {(type === 'Ingreso'
-                    ? ['Salario', 'Freelance', 'Monetización web', 'Negocios', 'Intereses', 'Otros']
-                    : type === 'Inversión'
-                      ? ['ETF', 'Acciones', 'Otro instrumento']
-                      : categories
-                  ).map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="field">
-                <label>Método de pago</label>
-                <select
-                  name="method"
-                  key={type}
-                  onChange={(e) => setEntryMethod(e.target.value)}
-                  defaultValue={matchedFixed?.id === 'REC-04' ? 'Tarjeta Nu' : 'Débito Bancolombia'}
-                >
-                  {methods
-                    .filter((m) => type === 'Gasto' || m !== 'Tarjeta Nu')
-                    .map((m) => (
-                      <option key={m}>{m}</option>
+              {type !== 'Retiro' && (
+                <div className="field">
+                  <label>Categoría</label>
+                  <select
+                    key={type}
+                    name="category"
+                    defaultValue={
+                      matchedFixed?.category ||
+                      (type === 'Ingreso' ? 'Salario' : type === 'Inversión' ? 'ETF' : 'Otros')
+                    }
+                  >
+                    {(type === 'Ingreso'
+                      ? ['Salario', 'Freelance', 'Monetización web', 'Negocios', 'Intereses', 'Otros']
+                      : type === 'Inversión'
+                        ? ['ETF', 'Acciones', 'Otro instrumento']
+                        : categories
+                    ).map((c) => (
+                      <option key={c}>{c}</option>
                     ))}
+                  </select>
+                </div>
+              )}
+              {type !== 'Retiro' && (
+                <div className="field">
+                  <label>Método de pago</label>
+                  <select
+                    name="method"
+                    key={type}
+                    onChange={(e) => {
+                      setEntryMethod(e.target.value)
+                      setEntryAccount(accountFor(e.target.value))
+                    }}
+                    defaultValue={
+                      matchedFixed?.id === 'REC-04' ? 'Tarjeta Nu' : 'Débito Bancolombia'
+                    }
+                  >
+                    {methods
+                      .filter((m) => type === 'Gasto' || m !== 'Tarjeta Nu')
+                      .map((m) => (
+                        <option key={m}>{m}</option>
+                      ))}
+                  </select>
+                </div>
+              )}
+              <div className="field">
+                <label>{type === 'Retiro' ? 'Cuenta destino' : 'Cuenta'}</label>
+                <select
+                  name="account"
+                  value={entryAccount}
+                  onChange={(e) => setEntryAccount(e.target.value)}
+                >
+                  {accounts.map((a) => (
+                    <option key={a} value={a}>
+                      {a}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -2378,7 +2437,7 @@ export default function App({
             ) : (
               <input name="reference" type="hidden" value={reference} />
             )}
-            {type !== 'Interés' && (
+            {type !== 'Interés' && type !== 'Retiro' && (
               <div className="mb-4 rounded-2xl border border-[#e2ead8] bg-[#f7f9f2] p-4">
                 <label className="flex cursor-pointer items-start gap-3">
                   <input
@@ -2434,7 +2493,9 @@ export default function App({
                     : s.cash +
                         (['Ingreso', 'Abono recibido', 'Retiro de ahorro'].includes(type)
                           ? entryAmount
-                          : type === 'Interés' || (type === 'Gasto' && entryMethod === 'Tarjeta Nu')
+                          : type === 'Retiro' ||
+                              type === 'Interés' ||
+                              (type === 'Gasto' && entryMethod === 'Tarjeta Nu')
                             ? 0
                             : -entryAmount),
                 )}
@@ -2445,9 +2506,11 @@ export default function App({
                 ? 'El abono aumenta tu caja. No paga automáticamente tu obligación con Nu.'
                 : type === 'Pago de deuda'
                   ? 'Reduce caja. Para la moto, confirma capital e interés en PAGOS DEUDA del Excel antes de reducir el principal.'
-                  : type === 'Interés'
-                    ? 'Solo registra el interés real de Nu. No es salario ni un nuevo aporte.'
-                    : 'Guardado seguro en la nube. Encontrarás tus registros cuando vuelvas.'}
+                  : type === 'Retiro'
+                    ? 'Convierte saldo de Bancolombia a la cuenta elegida. Tu dinero disponible total no cambia.'
+                    : type === 'Interés'
+                      ? 'Solo registra el interés real de Nu. No es salario ni un nuevo aporte.'
+                      : 'Guardado seguro en la nube. Encontrarás tus registros cuando vuelvas.'}
             </Note>
             <button className="button primary full submit-button" type="submit" disabled={saving}>
               <Check size={17} />
@@ -2646,7 +2709,7 @@ export default function App({
                 type="checkbox"
                 defaultChecked={editFixed?.essential ?? true}
               />
-              Es un compromiso esencial
+              Es un gasto fijo que se repite cada mes
             </label>
             <button className="button primary full submit-button" disabled={saving}>
               Guardar configuración <Check size={17} />
@@ -2788,9 +2851,26 @@ export default function App({
               <div className="field">
                 <label>Método de pago</label>
                 <select name="method" defaultValue={editMovement.method}>
-                  {methods.map((m) => (
+                  {[...new Set([...methods, editMovement.method])].map((m) => (
                     <option key={m} value={m}>
                       {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label>Cuenta</label>
+                <select
+                  name="account"
+                  defaultValue={
+                    editMovement.type === 'Retiro'
+                      ? editMovement.account || 'Efectivo'
+                      : accountFor(editMovement.method, editMovement.account)
+                  }
+                >
+                  {accounts.map((a) => (
+                    <option key={a} value={a}>
+                      {a}
                     </option>
                   ))}
                 </select>
