@@ -112,7 +112,7 @@ export default function FinancePortal() {
   return (
     <div className="min-h-dvh bg-[#f5f7f0] p-5 pb-10 text-[#243d30] sm:p-10 lg:grid lg:grid-cols-2 lg:gap-16 lg:px-[8vw]">
       <section className="mx-auto flex w-full max-w-lg flex-col pt-5 lg:justify-center lg:py-16">
-        <div className="mb-10 flex items-center gap-2.5">
+        <div className="mb-6 flex items-center gap-2.5 lg:mb-10">
           <img src="/bonsai.png" alt="Bonsai" className="h-10 w-auto" />
           <span className="font-[Manrope] text-3xl font-extrabold tracking-[-1.5px]">
             Bonsai<span className="text-[#267953]">.</span>
@@ -122,27 +122,29 @@ export default function FinancePortal() {
             Ahora en la nube
           </span>
         </div>
-        <div className="mb-3 text-[10px] font-semibold tracking-[.18em] text-[#7f9b66]">
-          TU TRANQUILIDAD, SIEMPRE CONTIGO
-        </div>
-        <h1 className="max-w-md text-[38px] leading-[1.15] font-semibold tracking-[-1.7px] sm:text-5xl">
-          Más presente.
-          <br />
-          Menos pendiente.
-        </h1>
-        <p className="mt-5 max-w-sm text-sm leading-7 text-[#89977b]">
-          Tu dinero, tus metas y cada pequeño movimiento. En un solo espacio que te acompaña, desde
-          cualquier pantalla.
-        </p>
-        <div className="mt-7 flex flex-wrap gap-5 text-[11px] text-[#75905d]">
-          <span className="flex items-center gap-1.5">
-            <ShieldCheck size={15} />
-            Acceso privado
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Smartphone size={15} />
-            Pensado para tu celular
-          </span>
+        <div className="hidden lg:block">
+          <div className="mb-3 text-[10px] font-semibold tracking-[.18em] text-[#7f9b66]">
+            TU TRANQUILIDAD, SIEMPRE CONTIGO
+          </div>
+          <h1 className="max-w-md text-[38px] leading-[1.15] font-semibold tracking-[-1.7px] sm:text-5xl">
+            Más presente.
+            <br />
+            Menos pendiente.
+          </h1>
+          <p className="mt-5 max-w-sm text-sm leading-7 text-[#89977b]">
+            Tu dinero, tus metas y cada pequeño movimiento. En un solo espacio que te acompaña,
+            desde cualquier pantalla.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-5 text-[11px] text-[#75905d]">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck size={15} />
+              Acceso privado
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Smartphone size={15} />
+              Pensado para tu celular
+            </span>
+          </div>
         </div>
         <div className="mt-10 hidden rounded-3xl border border-[#dce7d3] bg-[#e8f0df] p-7 lg:block">
           <Sparkles size={22} className="mb-4 text-[#8ba96a]" />
@@ -157,7 +159,7 @@ export default function FinancePortal() {
           </div>
         </div>
       </section>
-      <section className="mx-auto mt-9 w-full max-w-lg lg:my-auto">
+      <section className="mx-auto mt-6 w-full max-w-lg sm:mt-8 lg:my-auto">
         <div className="rounded-3xl border border-[#e1e8d8] bg-white p-6 shadow-[0_8px_45px_#35572e05] sm:p-9">
           <div className="mb-6 flex size-11 items-center justify-center rounded-2xl bg-[#f0f5e9] text-[#88a569]">
             <LockKeyhole size={21} strokeWidth={1.5} />

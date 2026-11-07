@@ -502,8 +502,9 @@ export default function App({
     sub: string,
     tone = 'green',
     extra?: string,
+    dark = false,
   ) => (
-    <article className="stat-card">
+    <article className={`stat-card${dark ? ' dark' : ''}`}>
       <div className="stat-top">
         <span>{label}</span>
         <IconTile icon={icon} tone={tone} />
@@ -656,40 +657,6 @@ export default function App({
           ))}
         </div>
       </section>
-      <div className="welcome-banner">
-        <div className="welcome-copy">
-          <span className="banner-tag">
-            <span /> TU NUEVO COMIENZO FINANCIERO
-          </span>
-          <h2>Más claridad. Mejores decisiones.</h2>
-          <p>Tu dinero tiene un plan. Empieza a construir el futuro que quieres.</p>
-          <button onClick={() => setModal('guide')}>
-            Conoce tu espacio financiero <ArrowRight size={15} />
-          </button>
-        </div>
-        <div className="banner-art" aria-hidden="true">
-          <div className="orbit orbit-one" />
-          <div className="orbit orbit-two" />
-          <div className="art-card art-back">
-            <TrendingUp size={20} />
-            <div />
-            <div />
-          </div>
-          <div className="art-card art-front">
-            <span className="art-check">
-              <Check size={20} />
-            </span>
-            <span>Un paso más cerca</span>
-            <strong>de tus metas.</strong>
-            <div className="art-progress">
-              <i />
-            </div>
-          </div>
-          <span className="art-spark">
-            <Sparkles size={21} />
-          </span>
-        </div>
-      </div>
       {month === reportedUniversityDate.slice(0, 7) && fixed.some((f) => f.id === 'REC-01') &&
         !monthly.some((m) => m.reference === `REC-01-${month}`) && (
           <button
@@ -718,7 +685,15 @@ export default function App({
         </span>
       </div>
       <div className="stats-grid" data-dashboard="true">
-        {stat('Dinero disponible', s.cash, Wallet, 'Saldo inicial + movimientos reales')}
+        {stat(
+          'Dinero disponible',
+          s.cash,
+          Wallet,
+          'Saldo inicial + movimientos reales',
+          'green',
+          undefined,
+          true,
+        )}
         {stat(
           'Ingresos del mes',
           s.received,
@@ -2094,19 +2069,6 @@ export default function App({
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sheets-promo">
-            <span className="promo-icon">
-              <FileSpreadsheet size={20} />
-            </span>
-            <strong>Tu sistema, a tu manera.</strong>
-            <p>
-              Lleva tus finanzas a Excel
-              <br />o Google Sheets.
-            </p>
-            <button onClick={() => setModal('download')}>
-              Descargar mi sistema <ArrowUpRight size={14} />
-            </button>
-          </div>
           <button className="nav-item" onClick={() => setModal('guide')}>
             <CircleHelp size={17} />
             <span>Guía y ayuda</span>
@@ -2127,7 +2089,7 @@ export default function App({
             <span>Cerrar sesión</span>
           </button>
           <div className="profile">
-            <span className="profile-avatar">M</span>
+            <span className="profile-avatar">{data.name.charAt(0).toUpperCase()}</span>
             <div>
               <strong>{data.name}</strong>
               <span>Colombia · COP</span>
@@ -2218,9 +2180,9 @@ export default function App({
                 </select>
                 <ChevronDown size={14} />
               </div>
-              <button className="button primary download-top" onClick={() => setModal('download')}>
-                <Download size={16} />
-                Descargar mi sistema
+              <button className="button primary" onClick={() => openTransaction()}>
+                <CircleDollarSign size={16} />
+                Nuevo movimiento
               </button>
             </div>
           </div>
@@ -2239,10 +2201,12 @@ export default function App({
           </footer>
         </main>
       </div>
-      <button className="floating-add" onClick={() => openTransaction()}>
-        <Plus size={18} />
-        <span>Nuevo movimiento</span>
-        <kbd>N</kbd>
+      <button
+        className="floating-add"
+        aria-label="Nuevo movimiento"
+        onClick={() => openTransaction()}
+      >
+        <Plus size={22} />
       </button>
       <nav
         aria-label="Navegación principal móvil"
@@ -2308,6 +2272,7 @@ export default function App({
             <div className="field">
               <label>Tipo de movimiento</label>
               <select
+                className="type-select"
                 value={type}
                 onChange={(e) => {
                   setType(e.target.value as MovementType)

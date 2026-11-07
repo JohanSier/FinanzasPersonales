@@ -653,6 +653,28 @@ h1 {
   min-width: 0;
   box-shadow: 0 2px 2px #2d482b02;
 }
+.stat-card.dark {
+  background: #245e43;
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 12px 30px #245e4315;
+}
+.stat-card.dark .stat-top > span:first-child {
+  color: #c8ddbb;
+}
+.stat-card.dark .icon-tile {
+  background: rgb(255 255 255 / 0.12);
+  color: #deebd4;
+}
+.stat-card.dark .stat-number {
+  color: #fff;
+}
+.stat-card.dark .stat-number > span {
+  color: #a9c296;
+}
+.stat-card.dark .stat-bottom > span:last-child {
+  color: #b6cea4;
+}
 .stat-top {
   display: flex;
   align-items: center;
@@ -1340,10 +1362,11 @@ footer button {
   color: #fff;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 14px;
-  border-radius: 7px;
-  font-size: 10px;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: 50%;
 }
 .floating-add:hover {
   background: #1a593b;
@@ -1904,6 +1927,11 @@ input[type='checkbox'] {
   outline: none;
   color: #75905d;
   min-height: 39px;
+}
+.field select.type-select {
+  padding-top: 30px;
+  padding-bottom: 30px;
+  min-height: 78px;
 }
 .field input:focus,
 .field select:focus {
@@ -3005,11 +3033,6 @@ input[type='checkbox'] {
   .floating-add {
     right: 17px;
     bottom: 17px;
-    padding: 12px 14px;
-    font-size: 10px;
-  }
-  .floating-add kbd {
-    display: none;
   }
   .new-month-button {
     right: auto;
