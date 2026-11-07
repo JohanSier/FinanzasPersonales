@@ -1,12 +1,10 @@
 import path from 'path'
-import { buildFigmaConfig } from '@payloadcms/figma'
+import { buildConfig } from 'payload'
+import { postgresAdapter } from '@payloadcms/db-postgres'
 import { mcpPlugin } from '@payloadcms/plugin-mcp'
 import { en as adminLanguage } from '@payloadcms/translations/languages/en'
 import { fileURLToPath } from 'url'
 import { Admins } from './collections/Admins'
-import { Media } from './collections/Media'
-import { Folders } from './collections/Folders'
-import { Tags } from './collections/Tags'
 import { Users } from './collections/Users'
 import {
   FinanceWorkspaces,
@@ -20,7 +18,7 @@ import {
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-export default buildFigmaConfig({
+export default buildConfig({
   admin: {
     user: Admins.slug,
     constrainWidth: true,
@@ -41,9 +39,6 @@ export default buildFigmaConfig({
   },
   collections: [
     Admins,
-    Media,
-    Folders,
-    Tags,
     Users,
     FinanceWorkspaces,
     RecurringExpenses,
@@ -52,6 +47,18 @@ export default buildFigmaConfig({
     FinanceMonths,
     FinanceMovements,
   ],
+  db: postgresAdapter({
+    // Supabase already provides the database; don't try to create one.
+    disableCreateDatabase: true,
+    // Auto-sync the schema on boot. This app is small enough that migrations
+    // aren't worth the overhead — Payload pushes table changes directly.
+    push: true,
+    pool: {
+      connectionString: process.env.DATABASE_URI,
+    },
+  }),
+  secret: process.env.PAYLOAD_SECRET || '',
+  serverURL: process.env.SITE_URL || 'http://localhost:3000',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
@@ -61,5 +68,4 @@ export default buildFigmaConfig({
     defaultLocale: 'en',
   },
   plugins: [mcpPlugin({})],
-  figma: {},
 })

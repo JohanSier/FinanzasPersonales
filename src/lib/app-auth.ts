@@ -4,11 +4,14 @@ import { createPayloadRequest, logoutOperation, refreshOperation } from 'payload
 import { getPayloadClient } from '@/lib/payload'
 
 const SESSION = 'app-session'
+// CHIPS/partitioned + SameSite=None cookies require a secure (HTTPS) origin.
+// Localhost dev is plain HTTP, so relax the flags there; production stays strict.
+const isLocalDev = process.env.NODE_ENV === 'development'
 const cookieOptions = {
   httpOnly: true,
-  secure: true,
-  sameSite: 'none' as const,
-  partitioned: true,
+  secure: !isLocalDev,
+  sameSite: (isLocalDev ? 'lax' : 'none') as 'lax' | 'none',
+  ...(isLocalDev ? {} : { partitioned: true }),
   path: '/',
   maxAge: 60 * 60 * 24 * 30,
 }

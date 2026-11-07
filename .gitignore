@@ -4,7 +4,6 @@ out/
 dist/
 build/
 .cache/
-.env*
 next-env.d.ts
 *.tsbuildinfo
 *-debug.log*
@@ -21,3 +20,8 @@ logs/
 # beside it.
 /.plugins/
 /.opencode-skills/
+
+# Environment variables
+.env
+.env.*
+!.env.example

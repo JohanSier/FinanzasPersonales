@@ -2,12 +2,21 @@
 
 import { useState, useRef, useEffect, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { saveMovement, saveFixed, saveGoal, generateMonth } from '@/lib/claro/actions'
+import {
+  saveMovement,
+  updateMovement,
+  saveFixed,
+  saveGoal,
+  saveLoan,
+  deleteMovement,
+  generateMonth,
+} from '@/lib/claro/actions'
 import {
   LayoutDashboard,
   ArrowDownLeft,
   ArrowUpRight,
   ArrowLeftRight,
+  ArrowUpDown,
   Wallet,
   Landmark,
   CreditCard,
@@ -44,6 +53,8 @@ import {
   SlidersHorizontal,
   Ellipsis,
   CircleCheck,
+  Pencil,
+  Trash2,
   CircleAlert,
   CloudCheck,
   LogOut,
@@ -63,6 +74,7 @@ import {
   type MovementType,
   type Fixed,
   type Goal,
+  type Loan,
   type FinanceData,
 } from './finance'
 import { Panel, Badge, IconTile, Empty, Modal, Note, Progress } from './components'
@@ -167,12 +179,24 @@ export default function App({
   const fixed = page === 'Gastos fijos' || page === 'Proyecciones' ? data.fixed : (data.plans[month] ?? data.fixed)
   const goals = data.goals
   const [modal, setModal] = useState<
-    'transaction' | 'download' | 'guide' | 'month' | 'goal' | 'fixed' | 'notifications' | null
+    | 'transaction'
+    | 'download'
+    | 'guide'
+    | 'month'
+    | 'goal'
+    | 'fixed'
+    | 'loan'
+    | 'edit-movement'
+    | 'notifications'
+    | 'account'
+    | null
   >(null)
   const [type, setType] = useState<MovementType>('Gasto')
   const [reference, setReference] = useState('')
   const [editFixed, setEditFixed] = useState<Fixed | null>(null)
   const [editGoal, setEditGoal] = useState<Goal | null>(null)
+  const [editLoan, setEditLoan] = useState<Loan | null>(null)
+  const [editMovement, setEditMovement] = useState<Movement | null>(null)
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState('')
   const [toastError, setToastError] = useState(false)
@@ -182,6 +206,8 @@ export default function App({
   const [fatherEarly, setFatherEarly] = useState(false)
   const [motoEarly, setMotoEarly] = useState(false)
   const [chartView, setChartView] = useState('Mes')
+  const [loanSort, setLoanSort] = useState<'oldest' | 'newest'>('oldest')
+  const [movementSort, setMovementSort] = useState<'oldest' | 'recent'>('oldest')
   const [period, setPeriod] = useState(1)
   const generated = Object.keys(data.plans)
   const plans = data.plans
@@ -195,6 +221,12 @@ export default function App({
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const s = summarize(movements, month)
   const monthly = movements.filter((m) => m.date.startsWith(month))
+  const isFixedPaid = (f: Fixed) =>
+    monthly.some(
+      (m) =>
+        m.reference === `${f.id}-${month}` ||
+        (f.id === 'REC-05' && m.type === 'Pago de deuda' && m.reference === 'MOTO'),
+    )
   const totalFixed = fixed.filter((f) => f.active).reduce((a, f) => a + f.amount, 0)
   const essential = fixed.filter((f) => f.active && f.essential).reduce((a, f) => a + f.amount, 0)
   const debtAllocation = fixed
@@ -243,7 +275,11 @@ export default function App({
             ? new Date().toLocaleDateString('en-CA')
             : `${month}-01`
   const [year, monthNum] = month.split('-').map(Number)
-  const loans = debts
+  const loans = [...debts].sort((a, b) =>
+    loanSort === 'oldest'
+      ? (a.dateLent || '9999-12-31').localeCompare(b.dateLent || '9999-12-31')
+      : (b.dateLent || '0000-01-01').localeCompare(a.dateLent || '0000-01-01'),
+  )
   const currentGoalBalance = (id: string) =>
     goalBalance(
       id,
@@ -385,6 +421,7 @@ export default function App({
       method: String(d.get('method')),
       reference: ref,
       created: new Date().toISOString(),
+      ...(type === 'Préstamo' ? { debtor: String(d.get('debtor') || '').trim() } : {}),
       ...(reconcile
         ? {
             balanceAfter: Number(d.get('balanceAfter')),
@@ -394,6 +431,10 @@ export default function App({
         : {}),
     }
     if (!record.description) return
+    if (type === 'Préstamo' && !record.debtor) {
+      notify('Indica el nombre de quien recibe el préstamo.')
+      return
+    }
     if (
       await commit(
         () => saveMovement(record),
@@ -423,6 +464,36 @@ export default function App({
       )
     )
       setModal(null)
+  }
+  const loanSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const d = new FormData(event.currentTarget)
+    const item = {
+      id: editLoan?.id || '',
+      description: String(d.get('description')),
+      debtor: String(d.get('debtor')),
+      amount: Number(d.get('amount')),
+      dateLent: String(d.get('dateLent') || ''),
+      due: String(d.get('due') || ''),
+    }
+    if (
+      await commit(() => saveLoan(item), 'Préstamo actualizado. Los abonos registrados se conservan.')
+    )
+      setModal(null)
+  }
+  const editMovementSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const d = new FormData(event.currentTarget)
+    if (!editMovement) return
+    const item: Movement = {
+      ...editMovement,
+      date: String(d.get('date')),
+      description: String(d.get('description')).trim(),
+      amount: Number(d.get('amount')),
+      category: String(d.get('category') || 'Otros'),
+      method: String(d.get('method')),
+    }
+    if (await commit(() => updateMovement(item), 'Movimiento actualizado.')) setModal(null)
   }
   const stat = (
     label: string,
@@ -480,7 +551,7 @@ export default function App({
   const movementTable = (rows: Movement[]) =>
     rows.length ? (
       table(
-        ['Movimiento', 'Categoría', 'Fecha', 'Método', 'Monto', 'Estado'],
+        ['Movimiento', 'Categoría', 'Fecha', 'Método', 'Monto', 'Estado', ''],
         rows
           .filter((m) =>
             (m.description + m.category + m.type).toLowerCase().includes(search.toLowerCase()),
@@ -489,19 +560,25 @@ export default function App({
             <div className="table-name">
               <IconTile
                 icon={
-                  ['Ingreso', 'Abono recibido', 'Interés'].includes(m.type)
-                    ? ArrowDownLeft
-                    : ArrowUpRight
+                  m.type === 'Préstamo'
+                    ? HandCoins
+                    : ['Ingreso', 'Abono recibido', 'Interés'].includes(m.type)
+                      ? ArrowUpRight
+                      : ArrowDownLeft
                 }
                 tone={
-                  ['Ingreso', 'Abono recibido', 'Interés'].includes(m.type) ? 'green' : 'neutral'
+                  ['Ingreso', 'Abono recibido', 'Interés'].includes(m.type)
+                    ? 'green'
+                    : m.type === 'Gasto'
+                      ? 'red'
+                      : m.type === 'Préstamo'
+                        ? 'yellow'
+                        : 'neutral'
                 }
               />
               <span>
                 <strong>{m.description}</strong>
-                <small>
-                  {m.type} · {m.id}
-                </small>
+                <span className="detail">{m.type}</span>
               </span>
             </div>,
             m.category,
@@ -511,6 +588,17 @@ export default function App({
               {cop(m.amount)}
             </strong>,
             <Badge tone="green">Confirmado</Badge>,
+            m.type === 'Préstamo' ? null : (
+              <button
+                className="text-button"
+                onClick={() => {
+                  setEditMovement(m)
+                  setModal('edit-movement')
+                }}
+              >
+                Editar <Pencil size={13} />
+              </button>
+            ),
           ]),
       )
     ) : (
@@ -606,7 +694,7 @@ export default function App({
         !monthly.some((m) => m.reference === `REC-01-${month}`) && (
           <button
             onClick={() => openTransaction('Gasto', `REC-01-${month}`)}
-            className="flex w-full items-center gap-3 rounded-2xl border border-[#e5e8d7] bg-[#f4f5e9] p-4 text-left transition active:bg-[#eaf0df] sm:gap-4 sm:px-5"
+            className="flex w-full items-center gap-3 rounded-2xl border border-[#e5e8d7] bg-[#f4f5e9] p-4 text-left transition active:bg-[#e8f0df] sm:gap-4 sm:px-5"
           >
             <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-[#e0e7cd] bg-[#eaf0db] text-[#8ba66b]">
               <Landmark size={20} strokeWidth={1.5} />
@@ -844,7 +932,9 @@ export default function App({
               .filter((f) => f.active)
               .sort((a, b) => (a.day || 99) - (b.day || 99))
               .slice(0, 3)
-              .map((f) => (
+              .map((f) => {
+                const paid = isFixedPaid(f)
+                return (
                 <div className="payment-item" key={f.id}>
                   <div className="date-tile">
                     {f.day ? (
@@ -858,16 +948,23 @@ export default function App({
                   </div>
                   <div>
                     <strong>{f.name}</strong>
-                    <span>{f.day ? 'Pago mensual · por confirmar' : 'Fecha por definir'}</span>
+                    <span>
+                      {paid
+                        ? 'Pagado este mes'
+                        : f.day
+                          ? 'Pago mensual · por confirmar'
+                          : 'Fecha por definir'}
+                    </span>
                   </div>
                   <div>
                     <strong>{cop(f.amount)}</strong>
-                    <Badge tone={f.day ? 'orange' : 'neutral'}>
-                      {f.day ? 'Pendiente' : 'Sin fecha'}
+                    <Badge tone={paid ? 'green' : f.day ? 'orange' : 'neutral'}>
+                      {paid ? 'Pagado' : f.day ? 'Pendiente' : 'Sin fecha'}
                     </Badge>
                   </div>
                 </div>
-              ))}
+                )
+              })}
           </div>
           <div className="subtle-foot">
             <Clock3 size={13} /> Son pagos previstos, no movimientos realizados.
@@ -913,7 +1010,11 @@ export default function App({
         className="recent-panel"
       >
         {monthly.length ? (
-          movementTable([...monthly].reverse().slice(0, 5))
+          movementTable(
+            [...monthly]
+              .sort((a, b) => b.date.localeCompare(a.date) || b.created.localeCompare(a.created))
+              .slice(0, 5),
+          )
         ) : (
           <div className="recent-empty">
             <span className="recent-empty-icon">
@@ -960,6 +1061,11 @@ export default function App({
       const rows = monthly.filter((m) =>
         page === 'Ingresos' ? m.type === 'Ingreso' : page === 'Gastos' ? m.type === 'Gasto' : true,
       )
+      const sortedRows = [...rows].sort((a, b) =>
+        movementSort === 'recent'
+          ? b.date.localeCompare(a.date) || b.created.localeCompare(a.created)
+          : a.date.localeCompare(b.date) || a.created.localeCompare(b.created),
+      )
       return (
         <>
           <div className="stats-grid three">
@@ -994,11 +1100,24 @@ export default function App({
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </label>
-              <span>
-                {rows.length} movimientos · {months[monthNum - 1]}
-              </span>
+              <div className="flex items-center gap-3">
+                <label className="table-sort">
+                  <ArrowUpDown size={15} />
+                  <select
+                    aria-label="Ordenar movimientos"
+                    value={movementSort}
+                    onChange={(e) => setMovementSort(e.target.value as 'oldest' | 'recent')}
+                  >
+                    <option value="oldest">Más antiguos primero</option>
+                    <option value="recent">Más recientes primero</option>
+                  </select>
+                </label>
+                <span>
+                  {rows.length} movimientos · {months[monthNum - 1]}
+                </span>
+              </div>
             </div>
-            {movementTable(rows)}
+            {movementTable(sortedRows)}
           </Panel>
           {page === 'Ingresos' && (
             <Panel
@@ -1085,18 +1204,25 @@ export default function App({
                 cop(f.amount),
                 f.day ? `Día ${f.day}` : 'Por definir',
                 f.essential ? 'Esencial' : 'Personal',
-                <button
-                  className={`badge ${f.active ? 'green' : 'neutral'}`}
-                  disabled={saving}
-                  onClick={() =>
-                    void commit(
-                      () => saveFixed({ ...f, active: !f.active }),
-                      'Estado del gasto fijo guardado.',
-                    )
-                  }
-                >
-                  {f.active ? 'Activo' : 'Pausado'}
-                </button>,
+                <div className="flex items-center gap-2">
+                  {isFixedPaid(f) && (
+                    <Badge tone="green">
+                      <Check size={10} /> Pagado
+                    </Badge>
+                  )}
+                  <button
+                    className={`badge ${f.active ? 'blue' : 'neutral'}`}
+                    disabled={saving}
+                    onClick={() =>
+                      void commit(
+                        () => saveFixed({ ...f, active: !f.active }),
+                        'Estado del gasto fijo guardado.',
+                      )
+                    }
+                  >
+                    {f.active ? 'Activo' : 'Pausado'}
+                  </button>
+                </div>,
                 <div className="button-row">
                   <button
                     className="text-button"
@@ -1109,11 +1235,7 @@ export default function App({
                   </button>
                   <button
                     className="text-button"
-                    disabled={monthly.some(
-                      (m) =>
-                        m.reference === `${f.id}-${month}` ||
-                        (f.id === 'REC-05' && m.type === 'Pago de deuda' && m.reference === 'MOTO'),
-                    )}
+                    disabled={isFixedPaid(f)}
                     onClick={() =>
                       openTransaction(
                         f.id === 'REC-05' ? 'Pago de deuda' : 'Gasto',
@@ -1160,32 +1282,71 @@ export default function App({
             registra el abono; después, el pago de la deuda.
           </Note>
           <Panel
-            title="Préstamos a mi padre"
+            title="Préstamos"
             subtitle="Cada concepto se conserva por separado."
-            action={actionButton('Registrar préstamo', 'Préstamo')}
+            action={
+              <div className="heading-actions">
+                <div className="month-select">
+                  <ArrowUpDown size={16} />
+                  <select
+                    aria-label="Ordenar préstamos por fecha"
+                    value={loanSort}
+                    onChange={(e) => setLoanSort(e.target.value as 'oldest' | 'newest')}
+                  >
+                    <option value="oldest">Más antiguos primero</option>
+                    <option value="newest">Más recientes primero</option>
+                  </select>
+                  <ChevronDown size={14} />
+                </div>
+                {actionButton('Registrar préstamo', 'Préstamo')}
+              </div>
+            }
           >
-            {table(
-              ['Concepto', 'Monto original', 'Reintegrado', 'Pendiente', 'Pago esperado', ''],
-              loans.map((d) => [
+            {loans.some((d) => repaymentBalance(d.id, movements) > 0) ? (
+              table(
+                ['Concepto', 'Fecha', 'Monto original', 'Reintegrado', 'Pendiente', 'Pago esperado', ''],
+                loans
+                  .filter((d) => repaymentBalance(d.id, movements) > 0)
+                  .map((d) => [
                 <div className="table-name">
                   <IconTile icon={HandCoins} />
                   <span>
-                    <strong>{d.description}</strong>
-                    <small>Padre · {d.id}</small>
+                    <strong>{d.debtor || 'Deudor'}</strong>
+                    <span className="detail">{d.description}</span>
                   </span>
                 </div>,
+                d.dateLent
+                  ? new Date(d.dateLent + 'T12:00:00').toLocaleDateString('es-CO', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })
+                  : '—',
                 cop(d.amount),
                 cop(d.amount - repaymentBalance(d.id, movements)),
                 <strong>{cop(repaymentBalance(d.id, movements))}</strong>,
                 d.due ? '27 nov – 3 dic 2026' : <Badge>Sin fecha confirmada</Badge>,
-                <button
-                  className="text-button"
-                  disabled={repaymentBalance(d.id, movements) <= 0}
-                  onClick={() => openTransaction('Abono recibido', d.id)}
-                >
-                  Registrar abono <Plus size={14} />
-                </button>,
+                <div className="flex items-center gap-3">
+                  <button
+                    className="text-button"
+                    onClick={() => {
+                      setEditLoan(d)
+                      setModal('loan')
+                    }}
+                  >
+                    Editar <Pencil size={13} />
+                  </button>
+                  <button
+                    className="text-button"
+                    onClick={() => openTransaction('Abono recibido', d.id)}
+                  >
+                    Registrar abono <Plus size={14} />
+                  </button>
+                </div>,
               ]),
+              )
+            ) : (
+              <Note>No tienes préstamos pendientes por cobrar.</Note>
             )}
           </Panel>
           <Panel title="Historial de abonos">
@@ -1901,24 +2062,12 @@ export default function App({
           <X size={21} />
         </button>
         <button className="brand" onClick={() => navigate('Resumen')}>
-          <span className="brand-symbol">
-            <span />
-            <span />
-            <span />
-          </span>
+          <img src="/bonsai.png" alt="Bonsai" className="h-9 w-auto shrink-0" />
           <span>
-            claro<span className="brand-period">.</span>
+            Bonsai<span className="brand-period">.</span>
             <small>FINANZAS PERSONALES</small>
           </span>
         </button>
-        <div className="workspace-selector">
-          <span className="workspace-avatar">M</span>
-          <div>
-            <strong>Mi espacio personal</strong>
-            <span>Un futuro más claro</span>
-          </div>
-          <ChevronDown size={14} />
-        </div>
         <nav>
           {primaryNav.map((group) => (
             <div className="nav-group" key={group.title}>
@@ -1958,14 +2107,6 @@ export default function App({
               Descargar mi sistema <ArrowUpRight size={14} />
             </button>
           </div>
-          <button
-            className={`nav-item ${page === 'Archivo histórico' ? 'active' : ''}`}
-            onClick={() => navigate('Archivo histórico')}
-          >
-            <FileArchive size={17} />
-            <span>Archivo histórico</span>
-            <ShieldCheck size={13} />
-          </button>
           <button className="nav-item" onClick={() => setModal('guide')}>
             <CircleHelp size={17} />
             <span>Guía y ayuda</span>
@@ -2001,10 +2142,8 @@ export default function App({
             onClick={() => navigate('Resumen')}
             className="inline-flex items-center gap-2 font-[Manrope] text-2xl font-extrabold tracking-[-1.2px] text-[#385d3e] min-[681px]:hidden"
           >
-            <span className="grid size-8 place-items-center rounded-lg bg-[#e8efde] text-[#789a59]">
-              <Wallet size={18} />
-            </span>
-            claro.
+            <img src="/bonsai.png" alt="" className="h-6 w-auto" />
+            Bonsai.
           </button>
           <div className="breadcrumb">
             <button
@@ -2037,8 +2176,8 @@ export default function App({
             </button>
             <button
               className="top-avatar"
-              aria-label="Mi cuenta y navegación"
-              onClick={() => setSidebar(true)}
+              aria-label="Mi cuenta"
+              onClick={() => setModal('account')}
             >
               {data.name.charAt(0).toUpperCase()}
             </button>
@@ -2067,8 +2206,8 @@ export default function App({
                     setMonth(e.target.value)
                   }}
                 >
-                  {Array.from({ length: Math.max(50, (year - 2026 + 4) * 12 - 10) }, (_, i) => {
-                    const d = new Date(2026, 10 + i, 1)
+                  {Array.from({ length: Math.max(51, (year - 2026 + 4) * 12 - 9) }, (_, i) => {
+                    const d = new Date(2026, 9 + i, 1)
                     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
                     return (
                       <option value={key} key={key}>
@@ -2088,7 +2227,7 @@ export default function App({
           <div className="content-stack">{renderPage()}</div>
           <footer>
             <span>
-              <span className="tiny-brand">claro.</span> Menos incertidumbre. Más futuro.
+              <span className="tiny-brand">Bonsai.</span> Menos incertidumbre. Más futuro.
             </span>
             <span>
               <ShieldCheck size={13} />
@@ -2225,14 +2364,26 @@ export default function App({
                   name="date"
                   type="date"
                   defaultValue={defaultDate}
-                  min="2026-11-01"
+                  min="2026-01-01"
                   required
                 />
               </div>
             </div>
+            {type === 'Préstamo' && (
+              <div className="field">
+                <label htmlFor="debtor">Nombre de quien recibe el préstamo</label>
+                <input
+                  id="debtor"
+                  name="debtor"
+                  maxLength={80}
+                  required
+                  placeholder="Ej. Padre, Juan, María..."
+                />
+              </div>
+            )}
             <div className="field">
               <label htmlFor="description">
-                {type === 'Préstamo' ? 'Deudor y motivo del préstamo' : 'Descripción'}
+                {type === 'Préstamo' ? 'Motivo del préstamo' : 'Descripción'}
               </label>
               <input
                 id="description"
@@ -2410,7 +2561,7 @@ export default function App({
               <FileSpreadsheet size={34} strokeWidth={1.3} />
             </span>
             <div>
-              <strong>Claro · Finanzas personales</strong>
+              <strong>Bonsai · Finanzas personales</strong>
               <p>Excel .xlsx · COP · Desde noviembre 2026</p>
               <Badge tone="green">
                 <CheckCheck size={12} />
@@ -2667,6 +2818,181 @@ export default function App({
               Guardar mi meta <Target size={17} />
             </button>
           </form>
+        </Modal>
+      )}
+      {modal === 'edit-movement' && editMovement && (
+        <Modal
+          title="Edita el movimiento."
+          subtitle="Los saldos se recalculan automáticamente."
+          onClose={() => setModal(null)}
+        >
+          <form onSubmit={editMovementSubmit}>
+            <div className="field">
+              <label>Descripción</label>
+              <input
+                name="description"
+                required
+                maxLength={200}
+                defaultValue={editMovement.description}
+              />
+            </div>
+            <div className="form-grid">
+              <div className="field">
+                <label>Monto COP</label>
+                <input
+                  name="amount"
+                  type="number"
+                  min="1"
+                  step="1"
+                  required
+                  defaultValue={editMovement.amount}
+                />
+              </div>
+              <div className="field">
+                <label>Fecha</label>
+                <input
+                  name="date"
+                  type="date"
+                  min="2026-01-01"
+                  required
+                  defaultValue={editMovement.date.slice(0, 10)}
+                />
+              </div>
+            </div>
+            <div className="form-grid">
+              <div className="field">
+                <label>Categoría</label>
+                <select name="category" defaultValue={editMovement.category}>
+                  {[
+                    ...new Set([
+                      ...(editMovement.type === 'Ingreso'
+                        ? ['Salario', 'Freelance', 'Monetización web', 'Negocios', 'Intereses']
+                        : editMovement.type === 'Inversión'
+                          ? ['ETF', 'Acciones', 'Otro instrumento']
+                          : categories),
+                      editMovement.category,
+                    ]),
+                  ].map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label>Método de pago</label>
+                <select name="method" defaultValue={editMovement.method}>
+                  {methods.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <button className="button primary full submit-button" disabled={saving}>
+              Guardar cambios <Check size={17} />
+            </button>
+            <button
+              type="button"
+              className="text-button mx-auto mt-3 flex items-center gap-1.5 text-[#b06a63]"
+              disabled={saving}
+              onClick={async () => {
+                if (
+                  !window.confirm(
+                    '¿Eliminar este movimiento? Esta acción no se puede deshacer.',
+                  )
+                )
+                  return
+                if (await commit(() => deleteMovement(editMovement.id), 'Movimiento eliminado.'))
+                  setModal(null)
+              }}
+            >
+              <Trash2 size={14} /> Eliminar movimiento
+            </button>
+          </form>
+        </Modal>
+      )}
+      {modal === 'loan' && editLoan && (
+        <Modal
+          title="Ajusta los detalles del préstamo."
+          subtitle="Los abonos ya registrados no se modifican."
+          onClose={() => setModal(null)}
+        >
+          <form onSubmit={loanSubmit}>
+            <div className="field">
+              <label>Nombre de quien recibe el préstamo</label>
+              <input
+                name="debtor"
+                required
+                maxLength={80}
+                defaultValue={editLoan.debtor || ''}
+                placeholder="Ej. Padre, Juan, María..."
+              />
+            </div>
+            <div className="field">
+              <label>Motivo</label>
+              <input
+                name="description"
+                required
+                maxLength={200}
+                defaultValue={editLoan.description}
+              />
+            </div>
+            <div className="form-grid">
+              <div className="field">
+                <label>Monto original COP</label>
+                <input
+                  name="amount"
+                  type="number"
+                  min="1"
+                  required
+                  defaultValue={editLoan.amount}
+                />
+              </div>
+              <div className="field">
+                <label>Fecha del préstamo</label>
+                <input name="dateLent" type="date" defaultValue={editLoan.dateLent || ''} />
+              </div>
+            </div>
+            <div className="field">
+              <label>Pago esperado (opcional)</label>
+              <input name="due" type="date" defaultValue={editLoan.due || ''} />
+            </div>
+            <button className="button primary full submit-button" disabled={saving}>
+              Guardar préstamo <Check size={17} />
+            </button>
+          </form>
+        </Modal>
+      )}
+      {modal === 'account' && (
+        <Modal
+          title="Tu cuenta."
+          subtitle="Solo tú puedes ver este espacio."
+          onClose={() => setModal(null)}
+        >
+          <div className="mb-5 flex items-center gap-3 rounded-2xl border border-[#efe0db] bg-[#fbf5f3] p-4">
+            <span className="profile-avatar">{data.name.charAt(0).toUpperCase()}</span>
+            <div className="min-w-0">
+              <strong className="block truncate text-sm text-[#385d3e]">{data.name}</strong>
+              <span className="block truncate text-xs text-[#8d997f]">{data.email}</span>
+            </div>
+          </div>
+          <button
+            className="button full"
+            disabled={busy}
+            onClick={() => {
+              setModal(null)
+              void onSignOut().catch(() =>
+                notify(
+                  'No se pudo cerrar la sesión. Revisa tu conexión e inténtalo de nuevo.',
+                  true,
+                ),
+              )
+            }}
+          >
+            <LogOut size={16} /> Cerrar sesión
+          </button>
         </Modal>
       )}
       {modal === 'month' && (

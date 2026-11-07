@@ -59,7 +59,7 @@
 
 :root {
   --green: #16836b;
-  --green-dark: #175b45;
+  --green-dark: #1a593b;
   --text: #263c33;
   --muted: #929b95;
   --border: #e7ece7;
@@ -105,32 +105,6 @@
   letter-spacing: 1.65px;
   font-weight: 600;
   margin-top: 7px;
-}
-.brand-symbol {
-  display: flex;
-  align-items: end;
-  gap: 3px;
-  height: 33px;
-  width: 31px;
-  transform: rotate(-5deg);
-}
-.brand-symbol span {
-  display: block;
-  width: 8px;
-  border-radius: 3px;
-  background: #228268;
-  transform: skewY(-15deg);
-}
-.brand-symbol span:nth-child(1) {
-  height: 15px;
-  background: #b7cfb8;
-}
-.brand-symbol span:nth-child(2) {
-  height: 25px;
-  background: #62a58b;
-}
-.brand-symbol span:nth-child(3) {
-  height: 33px;
 }
 .workspace-selector {
   display: flex;
@@ -441,7 +415,7 @@ h1 {
 }
 .button.secondary {
   background: #fff;
-  border: 1px solid #e3e9de;
+  border: 1px solid #e4e9de;
   color: #637b54;
 }
 .button.secondary:hover {
@@ -531,7 +505,7 @@ h1 {
   align-items: center;
   gap: 9px;
   margin-top: 19px;
-  color: #5b7c46;
+  color: #5c7c46;
 }
 .welcome-copy button:hover {
   color: #244d28;
@@ -696,7 +670,7 @@ h1 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #eff5ec;
+  background: #f2f5ec;
   color: #7b9e60;
   flex-shrink: 0;
 }
@@ -719,6 +693,14 @@ h1 {
 .icon-tile.green {
   color: #6e9d67;
   background: #eff5e9;
+}
+.icon-tile.red {
+  color: #b06a63;
+  background: #f8edeb;
+}
+.icon-tile.yellow {
+  color: #b3a05e;
+  background: #f7f3e6;
 }
 .stat-number {
   font-family: 'Manrope', sans-serif;
@@ -1128,7 +1110,7 @@ h1 {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  color: #b0ba9f;
+  color: #afba9f;
   flex-shrink: 0;
 }
 .date-tile span {
@@ -1453,6 +1435,10 @@ tbody tr:hover {
   display: block;
   font-size: 10px;
 }
+.table-name .detail {
+  display: block;
+  font-size: 10px;
+}
 .table-name small {
   display: block;
   font-size: 8px;
@@ -1480,7 +1466,7 @@ tbody tr:hover {
   border: 1px solid #e7ecdf;
   border-radius: 5px;
   padding: 9px 11px;
-  color: #b0ba9f;
+  color: #afba9f;
 }
 .search-input input {
   outline: none;
@@ -1493,6 +1479,23 @@ tbody tr:hover {
 .table-toolbar > span {
   font-size: 9px;
   color: #acb69e;
+}
+.table-sort {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #e7ecdf;
+  border-radius: 5px;
+  padding: 9px 11px;
+  color: #afba9f;
+}
+.table-sort select {
+  outline: none;
+  font-size: 10px;
+  background: transparent;
+  border: 0;
+  color: #6d5d55;
+  cursor: pointer;
 }
 .note {
   display: flex;
@@ -1715,7 +1718,7 @@ input[type='checkbox'] {
 }
 .payday-banner {
   background: #edf3e7;
-  border: 1px solid #e5edda;
+  border: 1px solid #e4edda;
   border-radius: 9px;
   padding: 24px;
   display: flex;
@@ -1899,7 +1902,7 @@ input[type='checkbox'] {
   padding: 10px 12px;
   font-size: 11px;
   outline: none;
-  color: #76905d;
+  color: #75905d;
   min-height: 39px;
 }
 .field input:focus,
@@ -1967,7 +1970,7 @@ input[type='checkbox'] {
 }
 .download-preview p {
   font-size: 9px;
-  color: #9faf8d;
+  color: #9eaf8d;
   margin: 7px 0;
 }
 .download-preview .badge {

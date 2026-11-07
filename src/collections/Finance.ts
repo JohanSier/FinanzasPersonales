@@ -183,7 +183,7 @@ export const FinanceMovements: CollectionConfig = {
     useAsTitle: 'description',
     defaultColumns: ['date', 'type', 'description', 'amount', 'balanceAfter'],
   },
-  access: { ...movementsBase.access, update: () => false, delete: isAdmin },
+  access: { ...movementsBase.access, update: appWrite, delete: appWrite },
   fields: [
     workspaceField,
     {
@@ -211,6 +211,13 @@ export const FinanceMovements: CollectionConfig = {
       ],
     },
     { name: 'description', type: 'text', required: true, maxLength: 200 },
+    {
+      name: 'debtor',
+      label: 'Deudor (solo préstamos)',
+      type: 'text',
+      maxLength: 80,
+      access: { update: () => false },
+    },
     amount(),
     { name: 'category', type: 'text', required: true, maxLength: 100 },
     { name: 'method', type: 'select', required: true, options: methods },
@@ -241,6 +248,8 @@ export const FinanceMovements: CollectionConfig = {
         if (!data || operation !== 'create') return data
         if (!Number.isSafeInteger(data.amount) || data.amount <= 0)
           throw new APIError('El monto debe ser un número positivo de pesos enteros.', 400)
+        if (data.type === 'Préstamo' && !String(data.debtor || '').trim())
+          throw new APIError('Indica el nombre de quien recibe el préstamo.', 400)
         const id = typeof data.workspace === 'object' ? data.workspace.id : data.workspace
         data.transactionId = movementIdentity(String(id), data.reference || '', data.transactionId)
         const workspace = await req.payload.findByID({
@@ -355,7 +364,7 @@ export const FinanceMovements: CollectionConfig = {
             data: {
               workspace: typeof doc.workspace === 'object' ? doc.workspace.id : doc.workspace,
               loanKey: doc.transactionId,
-              debtor: 'Consultar descripción',
+              debtor: doc.debtor || 'Consultar descripción',
               description: doc.description,
               amount: doc.amount,
               dateLent: doc.date,

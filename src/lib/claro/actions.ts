@@ -125,7 +125,7 @@ export async function saveMovement(input: Movement): Promise<Result> {
     if (
       !/^TX-[a-f0-9-]{36}$/i.test(input.id) ||
       !validDate(input.date) ||
-      input.date < '2026-11-01' ||
+      input.date < '2026-01-01' ||
       !types.includes(input.type) ||
       !integer(input.amount) ||
       !string(input.description) ||
@@ -162,6 +162,7 @@ export async function saveMovement(input: Movement): Promise<Result> {
           date: input.date + 'T12:00:00.000Z',
           type: input.type,
           description: string(input.description),
+          debtor: string(input.debtor, 80),
           amount: input.amount,
           category: string(input.category, 100) || 'Otros',
           method: input.method as FinanceMovement['method'],
@@ -271,6 +272,127 @@ export async function saveGoal(input: Goal): Promise<Result> {
         context: { financeWrite: true },
         data: { ...data, workspace: workspace.id, goalKey: input.id },
       })
+    return await updated()
+  } catch (e) {
+    return fail(e)
+  }
+}
+export async function updateMovement(input: Movement): Promise<Result> {
+  try {
+    const session = await financeSession()
+    if (!session) return { ok: false, error: 'Tu sesión terminó.' }
+    if (
+      !/^TX-[a-f0-9-]{36}$/i.test(input.id) ||
+      !validDate(input.date) ||
+      input.date < '2026-01-01' ||
+      !string(input.description) ||
+      !integer(input.amount) ||
+      !methods.includes(input.method) ||
+      !string(input.category, 100)
+    )
+      return { ok: false, error: 'Revisa el monto, la fecha, el tipo y la descripción.' }
+    const { payload, user } = session
+    const found = await payload.find({
+      collection: 'finance-movements',
+      user,
+      overrideAccess: false,
+      where: { transactionId: { equals: input.id } },
+      limit: 1,
+    })
+    if (!found.docs[0]) return { ok: false, error: 'Ese movimiento ya no existe.' }
+    await payload.update({
+      collection: 'finance-movements',
+      id: found.docs[0].id,
+      user,
+      overrideAccess: false,
+      context: { financeWrite: true },
+      data: {
+        date: input.date + 'T12:00:00.000Z',
+        description: string(input.description),
+        amount: input.amount,
+        category: string(input.category, 100) || 'Otros',
+        method: input.method as FinanceMovement['method'],
+      },
+    })
+    return await updated()
+  } catch (e) {
+    return fail(e)
+  }
+}
+export async function deleteMovement(id: string): Promise<Result> {
+  try {
+    const session = await financeSession()
+    if (!session) return { ok: false, error: 'Tu sesión terminó.' }
+    if (!/^TX-[a-f0-9-]{36}$/i.test(id)) return { ok: false, error: 'Movimiento inválido.' }
+    const { payload, user } = session
+    const found = await payload.find({
+      collection: 'finance-movements',
+      user,
+      overrideAccess: false,
+      where: { transactionId: { equals: id } },
+      limit: 1,
+    })
+    if (!found.docs[0]) return { ok: false, error: 'Ese movimiento ya no existe.' }
+    await payload.delete({
+      collection: 'finance-movements',
+      id: found.docs[0].id,
+      user,
+      overrideAccess: false,
+      context: { financeWrite: true },
+    })
+    return await updated()
+  } catch (e) {
+    return fail(e)
+  }
+}
+export async function saveLoan(input: {
+  id: string
+  description: string
+  debtor: string
+  amount: number
+  dateLent: string
+  due: string
+}): Promise<Result> {
+  try {
+    const session = await financeSession()
+    if (!session) return { ok: false, error: 'Tu sesión terminó.' }
+    const description = string(input.description, 200)
+    const debtor = string(input.debtor, 80)
+    if (
+      !/^TX-[A-Za-z0-9-]+$/.test(input.id) ||
+      !description ||
+      !debtor ||
+      !integer(input.amount) ||
+      (input.dateLent && !validDate(input.dateLent)) ||
+      (input.due && !validDate(input.due))
+    )
+      return {
+        ok: false,
+        error: 'Revisa el deudor, el motivo, el monto y las fechas del préstamo.',
+      }
+    const { payload, user } = session
+    const found = await payload.find({
+      collection: 'receivables',
+      user,
+      overrideAccess: false,
+      where: { loanKey: { equals: input.id } },
+      limit: 1,
+    })
+    if (!found.docs[0]) return { ok: false, error: 'Ese préstamo ya no existe.' }
+    await payload.update({
+      collection: 'receivables',
+      id: found.docs[0].id,
+      user,
+      overrideAccess: false,
+      context: { financeWrite: true },
+      data: {
+        description,
+        debtor,
+        amount: input.amount,
+        dateLent: input.dateLent ? input.dateLent + 'T12:00:00.000Z' : null,
+        due: input.due ? input.due + 'T12:00:00.000Z' : null,
+      },
+    })
     return await updated()
   } catch (e) {
     return fail(e)

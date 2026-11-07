@@ -39,6 +39,7 @@ export async function loadFinanceData(): Promise<FinanceData | null> {
   ])
   return {
     name: user.name,
+    email: user.email,
     config: {
       openingCash: workspace.openingCash,
       monthlyIncome: workspace.monthlyIncome,
@@ -71,6 +72,7 @@ export async function loadFinanceData(): Promise<FinanceData | null> {
       amount: d.amount,
       due: d.due?.slice(0, 10) || '',
       debtor: d.debtor,
+      dateLent: d.dateLent?.slice(0, 10) || '',
     })),
     plans: Object.fromEntries(
       months.docs.map((d) => [

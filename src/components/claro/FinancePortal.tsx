@@ -13,7 +13,6 @@ import {
   ShieldCheck,
   Smartphone,
   Sparkles,
-  Wallet,
 } from 'lucide-react'
 import { createAccount, signIn, signOut } from '@/lib/claro/actions'
 import type { FinanceData } from './finance'
@@ -100,10 +99,8 @@ export default function FinancePortal() {
     return (
       <div className="grid min-h-dvh place-items-center bg-[#f7f9f5] p-6">
         <div className="text-center">
-          <div className="mx-auto mb-6 grid size-16 place-items-center rounded-2xl bg-[#e7f0df] text-[#267953]">
-            <Wallet size={28} strokeWidth={1.5} />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">claro.</h1>
+          <img src="/bonsai.png" alt="Bonsai" className="mx-auto mb-6 h-16 w-auto" />
+          <h1 className="text-3xl font-bold tracking-tight">Bonsai.</h1>
           <p className="mt-3 flex items-center gap-2 text-sm text-[#7a8d72]">
             <LoaderCircle size={15} className="animate-spin" />
             Conectando con tu espacio seguro
@@ -116,11 +113,9 @@ export default function FinancePortal() {
     <div className="min-h-dvh bg-[#f5f7f0] p-5 pb-10 text-[#243d30] sm:p-10 lg:grid lg:grid-cols-2 lg:gap-16 lg:px-[8vw]">
       <section className="mx-auto flex w-full max-w-lg flex-col pt-5 lg:justify-center lg:py-16">
         <div className="mb-10 flex items-center gap-2.5">
-          <span className="grid size-10 place-items-center rounded-xl bg-[#267953] text-white">
-            <Wallet size={22} strokeWidth={1.5} />
-          </span>
+          <img src="/bonsai.png" alt="Bonsai" className="h-10 w-auto" />
           <span className="font-[Manrope] text-3xl font-extrabold tracking-[-1.5px]">
-            claro<span className="text-[#267953]">.</span>
+            Bonsai<span className="text-[#267953]">.</span>
           </span>
           <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-[#dce5d3] bg-white/60 px-3 py-1.5 text-[10px] font-medium text-[#6e8759]">
             <Cloud size={12} />
@@ -258,7 +253,7 @@ export default function FinancePortal() {
         </div>
         <p className="mt-6 text-center text-[10px] text-[#9ead90]">
           Hecho para avanzar a tu ritmo.{' '}
-          <span className="font-semibold text-[#87a06f]">claro.</span>
+          <span className="font-semibold text-[#87a06f]">Bonsai.</span>
         </p>
       </section>
     </div>

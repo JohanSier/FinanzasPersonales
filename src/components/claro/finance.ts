@@ -49,11 +49,19 @@ export type Movement = {
   method: string
   reference: string
   created: string
+  debtor?: string
   balanceAfter?: number | null
   cashAdjustment?: number | null
   reconciliationNote?: string
 }
-export type Loan = { id: string; description: string; amount: number; due: string; debtor?: string }
+export type Loan = {
+  id: string
+  description: string
+  amount: number
+  due: string
+  debtor?: string
+  dateLent?: string
+}
 export type FinanceConfig = {
   openingCash: number
   motoPrincipal: number
@@ -62,6 +70,7 @@ export type FinanceConfig = {
 }
 export type FinanceData = {
   name: string
+  email: string
   config: FinanceConfig & { monthlyIncome: number; motoRate: number; balanceConfirmedOn: string }
   movements: Movement[]
   fixed: Fixed[]

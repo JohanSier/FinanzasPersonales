@@ -5,7 +5,7 @@ import { BodyCustomCode, renderHeadCustomCode } from '@/lib/make-custom-code'
 import { makeSiteSettings, sanitizeHtmlAttribute } from '@/lib/make-site-settings'
 import './styles.css'
 
-const defaultTitle = 'Claro · Finanzas personales'
+const defaultTitle = 'Bonsai · Finanzas personales'
 const title = makeSiteSettings.title ?? defaultTitle
 const description =
   makeSiteSettings.description ??

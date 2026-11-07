@@ -1,0 +1,7 @@
+[build]
+  command = "pnpm build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "24.22.1"
+  SECRETS_SCAN_ENABLED = "false"
