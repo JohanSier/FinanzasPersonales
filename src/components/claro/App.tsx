@@ -1245,7 +1245,7 @@ export default function App({
                 f.category,
                 cop(f.amount),
                 f.day ? `Día ${f.day}` : 'Por definir',
-                f.essential ? 'Fijo' : 'Variable',
+                f.essential ? 'Fijo' : 'De una sola vez',
                 <div className="flex items-center gap-2">
                   {isFixedPaid(f) && (
                     <Badge tone="green">
