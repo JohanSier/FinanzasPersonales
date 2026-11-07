@@ -35,7 +35,6 @@ import {
   ChevronLeft,
   Plus,
   Download,
-  Bell,
   Search,
   ArrowRight,
   Check,
@@ -207,7 +206,7 @@ export default function App({
   const [motoEarly, setMotoEarly] = useState(false)
   const [chartView, setChartView] = useState('Mes')
   const [loanSort, setLoanSort] = useState<'oldest' | 'newest'>('oldest')
-  const [movementSort, setMovementSort] = useState<'oldest' | 'recent'>('oldest')
+  const [movementSort, setMovementSort] = useState<'oldest' | 'recent'>('recent')
   const [period, setPeriod] = useState(1)
   const generated = Object.keys(data.plans)
   const plans = data.plans
@@ -2043,6 +2042,7 @@ export default function App({
             <small>FINANZAS PERSONALES</small>
           </span>
         </button>
+        <div className="sidebar-scroll">
         <nav>
           {primaryNav.map((group) => (
             <div className="nav-group" key={group.title}>
@@ -2074,77 +2074,18 @@ export default function App({
             <span>Guía y ayuda</span>
             <ExternalLink size={13} />
           </button>
-          <button
-            className="nav-item"
-            onClick={() =>
-              void onSignOut().catch(() =>
-                notify(
-                  'No se pudo cerrar la sesión. Revisa tu conexión e inténtalo de nuevo.',
-                  true,
-                ),
-              )
-            }
-          >
-            <LogOut size={17} />
-            <span>Cerrar sesión</span>
-          </button>
-          <div className="profile">
+          <button type="button" className="profile" onClick={() => setModal('account')}>
             <span className="profile-avatar">{data.name.charAt(0).toUpperCase()}</span>
             <div>
               <strong>{data.name}</strong>
               <span>Colombia · COP</span>
             </div>
             <span className="profile-status" />
-          </div>
+          </button>
+        </div>
         </div>
       </aside>
       <div className="main-wrapper">
-        <header className="topbar">
-          <button
-            onClick={() => navigate('Resumen')}
-            className="inline-flex items-center gap-2 font-[Manrope] text-2xl font-extrabold tracking-[-1.2px] text-[#385d3e] min-[681px]:hidden"
-          >
-            <img src="/bonsai.png" alt="" className="h-6 w-auto" />
-            Bonsai.
-          </button>
-          <div className="breadcrumb">
-            <button
-              className="icon-button mobile-menu"
-              onClick={() => setSidebar(true)}
-              aria-label="Abrir navegación"
-            >
-              <Menu size={21} />
-            </button>
-            <span>Mi espacio</span>
-            <ChevronRight size={13} />
-            <strong>{page}</strong>
-          </div>
-          <div className="topbar-right">
-            <span className="private-label">
-              <ShieldCheck size={14} />
-              Solo para ti
-            </span>
-            <span className="currency-pill">
-              COP <span>·</span> Colombia
-            </span>
-            <span className="topbar-divider" />
-            <button
-              className="notification-button"
-              aria-label="Ver pendientes"
-              onClick={() => setModal('notifications')}
-            >
-              <Bell size={18} />
-              <i />
-            </button>
-            <button
-              className="top-avatar"
-              aria-label="Mi cuenta"
-              onClick={() => setModal('account')}
-            >
-              {data.name.charAt(0).toUpperCase()}
-            </button>
-          </div>
-        </header>
         <main>
           <div className="page-heading">
             <div>

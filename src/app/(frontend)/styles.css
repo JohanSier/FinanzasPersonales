@@ -77,9 +77,18 @@
   z-index: 40;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  scrollbar-width: none;
+  padding: 30px 0 0;
+}
+.sidebar-scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   scrollbar-width: none;
-  padding: 30px 18px 0;
+  padding: 0 18px 24px;
+  display: flex;
+  flex-direction: column;
 }
 .brand {
   display: flex;
@@ -243,6 +252,16 @@
   display: flex;
   align-items: center;
   gap: 9px;
+  background: none;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.profile:hover {
+  background: #f3f6f1;
 }
 .profile-avatar,
 .top-avatar {
@@ -3195,9 +3214,11 @@ input[type='checkbox'] {
   .sidebar {
     width: min(320px, 86vw);
     padding-top: 29px;
-    padding-bottom: 80px;
     overscroll-behavior: contain;
     z-index: 60;
+  }
+  .sidebar-scroll {
+    padding-bottom: 80px;
   }
   .sidebar-overlay {
     z-index: 55;
