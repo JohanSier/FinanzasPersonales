@@ -260,6 +260,15 @@ export interface FinanceWorkspace {
   motoRate: number;
   nuAdvance: number;
   operationalStart: string;
+  accountBalances?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   notes?: string | null;
   history?:
     | {
@@ -470,8 +479,9 @@ export interface FinanceMovement {
   debtor?: string | null;
   amount: number;
   category: string;
-  method: 'Débito Bancolombia' | 'Débito Nu' | 'Nequi' | 'Tarjeta Nu' | 'Efectivo';
-  account?: ('Efectivo' | 'Nequi' | 'Bancolombia' | 'Nu') | null;
+  method: 'Débito Bancolombia' | 'Débito Nu' | 'Nequi' | 'Tarjeta Nu' | 'Efectivo' | 'Transferencia' | 'Otro';
+  account?: ('Efectivo' | 'Caja Fuerte' | 'Nequi' | 'Bancolombia' | 'Nu') | null;
+  fromAccount?: ('Efectivo' | 'Caja Fuerte' | 'Nequi' | 'Bancolombia' | 'Nu') | null;
   reference?: string | null;
   balanceAfter?: number | null;
   cashAdjustment?: number | null;
@@ -705,6 +715,7 @@ export interface FinanceWorkspacesSelect<T extends boolean = true> {
   motoRate?: T;
   nuAdvance?: T;
   operationalStart?: T;
+  accountBalances?: T;
   notes?: T;
   history?: T;
   createdBy?: T;
@@ -803,6 +814,7 @@ export interface FinanceMovementsSelect<T extends boolean = true> {
   category?: T;
   method?: T;
   account?: T;
+  fromAccount?: T;
   reference?: T;
   balanceAfter?: T;
   cashAdjustment?: T;

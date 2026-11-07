@@ -10,6 +10,7 @@ import {
   saveLoan,
   deleteMovement,
   generateMonth,
+  saveAccountBalances,
 } from '@/lib/claro/actions'
 import {
   LayoutDashboard,
@@ -66,6 +67,8 @@ import {
   methods,
   accounts,
   accountFor,
+  methodForAccount,
+  selectableMethods,
   summarize as calculateSummary,
   repaymentBalance as calculateRepaymentBalance,
   amortize,
@@ -188,6 +191,7 @@ export default function App({
     | 'fixed'
     | 'loan'
     | 'edit-movement'
+    | 'balances'
     | 'notifications'
     | 'account'
     | null
@@ -217,6 +221,7 @@ export default function App({
   const [entryAmount, setEntryAmount] = useState(0)
   const [entryMethod, setEntryMethod] = useState(methods[0])
   const [entryAccount, setEntryAccount] = useState(accounts[2])
+  const [entryFrom, setEntryFrom] = useState('Bancolombia')
   const [confirmedBalance, setConfirmedBalance] = useState(0)
   const inFlight = useRef(false)
   const transactionKey = useRef('')
@@ -231,6 +236,10 @@ export default function App({
     )
   const totalFixed = fixed.filter((f) => f.active).reduce((a, f) => a + f.amount, 0)
   const essential = fixed.filter((f) => f.active && f.essential).reduce((a, f) => a + f.amount, 0)
+  const declaredAccountTotal = ['Efectivo', 'Caja Fuerte', 'Nequi', 'Nu'].reduce(
+    (a, k) => a + (config.accountBalances?.[k] || 0),
+    0,
+  )
   const debtAllocation = fixed
     .filter((f) => f.active && f.id === 'REC-05')
     .reduce((a, f) => a + f.amount, 0)
@@ -335,6 +344,7 @@ export default function App({
     setEntryAmount(preset?.amount || (ref.startsWith('NOM-') ? config.monthlyIncome / 2 : 0))
     setEntryMethod(preset?.id === 'REC-04' ? 'Tarjeta Nu' : methods[0])
     setEntryAccount(t === 'Retiro' ? 'Efectivo' : accountFor(preset?.id === 'REC-04' ? 'Tarjeta Nu' : methods[0]))
+    setEntryFrom('Bancolombia')
     setConfirmedBalance(s.cash)
     setModal('transaction')
   }
@@ -382,6 +392,8 @@ export default function App({
     const d = new FormData(event.currentTarget)
     const amount = Number(d.get('amount'))
     const ref = String(d.get('reference') || '')
+    const fromAccount =
+      type === 'Retiro' ? String(d.get('fromAccount') || 'Bancolombia') : ''
     if (!Number.isFinite(amount) || amount <= 0) return
     if (
       reference &&
@@ -399,8 +411,8 @@ export default function App({
       notify('El retiro supera el saldo de tus ahorros.')
       return
     }
-    if (type === 'Retiro' && amount > s.cashByAccount.Bancolombia) {
-      notify('El retiro supera tu saldo en Bancolombia.')
+    if (type === 'Retiro' && amount > (s.cashByAccount[fromAccount] ?? 0)) {
+      notify(`El movimiento supera tu saldo en ${fromAccount}.`)
       return
     }
     if (
@@ -422,12 +434,16 @@ export default function App({
       id: transactionKey.current || 'TX-' + crypto.randomUUID().toUpperCase(),
       date: String(d.get('date')),
       type,
-      description: String(d.get('description')).trim(),
+      description:
+        type === 'Retiro'
+          ? `De ${fromAccount} a ${String(d.get('account') || 'Efectivo')}`
+          : String(d.get('description')).trim(),
       amount,
       category:
         type === 'Retiro' ? 'Transferencias' : String(d.get('category') || 'Otros'),
-      method: type === 'Retiro' ? 'Débito Bancolombia' : String(d.get('method')),
+      method: type === 'Retiro' ? methodForAccount(fromAccount) : String(d.get('method')),
       account: String(d.get('account')),
+      ...(type === 'Retiro' ? { fromAccount } : {}),
       reference: ref,
       created: new Date().toISOString(),
       ...(type === 'Préstamo' ? { debtor: String(d.get('debtor') || '').trim() } : {}),
@@ -502,6 +518,12 @@ export default function App({
       category: String(d.get('category') || 'Otros'),
       method: String(d.get('method')),
       account: String(d.get('account')),
+      fromAccount: String(d.get('fromAccount') || ''),
+    }
+    if (item.type === 'Retiro') {
+      item.method = methodForAccount(item.fromAccount || 'Bancolombia')
+      item.category = 'Transferencias'
+      item.description = `De ${item.fromAccount || 'Bancolombia'} a ${item.account || 'Efectivo'}`
     }
     if (await commit(() => updateMovement(item), 'Movimiento actualizado.')) setModal(null)
   }
@@ -650,11 +672,16 @@ export default function App({
           <ShieldCheck size={12} />
           Saldo real + movimientos. Nunca dinero esperado.
         </div>
-        <div className="balance-accounts">
+        <div
+          className="balance-accounts balance-accounts-edit"
+          role="button"
+          aria-label="Ajustar saldos por cuenta"
+          onClick={() => setModal('balances')}
+        >
           {accounts.map((a) => (
-            <div key={a}>
+            <div key={a} className={a === 'Caja Fuerte' ? 'sub-account' : undefined}>
               <span>
-                <i className={`balance-dot ${a.toLowerCase()}`} />
+                <i className={`balance-dot ${a.toLowerCase().replace(/\s+/g, '-')}`} />
                 {a}
               </span>
               <strong>{cop(s.cashByAccount[a] ?? 0)}</strong>
@@ -716,11 +743,16 @@ export default function App({
           'green',
           undefined,
           true,
-          <div className="balance-accounts">
+          <div
+          className="balance-accounts balance-accounts-edit"
+          role="button"
+          aria-label="Ajustar saldos por cuenta"
+          onClick={() => setModal('balances')}
+        >
             {accounts.map((a) => (
-              <div key={a}>
+              <div key={a} className={a === 'Caja Fuerte' ? 'sub-account' : undefined}>
                 <span>
-                  <i className={`balance-dot ${a.toLowerCase()}`} />
+                  <i className={`balance-dot ${a.toLowerCase().replace(/\s+/g, '-')}`} />
                   {a}
                 </span>
                 <strong>{cop(s.cashByAccount[a] ?? 0)}</strong>
@@ -2323,25 +2355,27 @@ export default function App({
                 />
               </div>
             )}
-            <div className="field">
-              <label htmlFor="description">
-                {type === 'Préstamo' ? 'Motivo del préstamo' : 'Descripción'}
-              </label>
-              <input
-                id="description"
-                name="description"
-                maxLength={200}
-                required
-                defaultValue={
-                  matchedFixed?.name || (salaryReference ? 'Nómina recibida' : undefined)
-                }
-                placeholder={
-                  type === 'Gasto'
-                    ? 'Ej. Almuerzo, gasolina, universidad...'
-                    : '¿A qué corresponde este movimiento?'
-                }
-              />
-            </div>
+            {type !== 'Retiro' && (
+              <div className="field">
+                <label htmlFor="description">
+                  {type === 'Préstamo' ? 'Motivo del préstamo' : 'Descripción'}
+                </label>
+                <input
+                  id="description"
+                  name="description"
+                  maxLength={200}
+                  required
+                  defaultValue={
+                    matchedFixed?.name || (salaryReference ? 'Nómina recibida' : undefined)
+                  }
+                  placeholder={
+                    type === 'Gasto'
+                      ? 'Ej. Almuerzo, gasolina, universidad...'
+                      : '¿A qué corresponde este movimiento?'
+                  }
+                />
+              </div>
+            )}
             <div className="form-grid">
               {type !== 'Retiro' && (
                 <div className="field">
@@ -2379,11 +2413,27 @@ export default function App({
                       matchedFixed?.id === 'REC-04' ? 'Tarjeta Nu' : 'Débito Bancolombia'
                     }
                   >
-                    {methods
+                    {selectableMethods
                       .filter((m) => type === 'Gasto' || m !== 'Tarjeta Nu')
                       .map((m) => (
                         <option key={m}>{m}</option>
                       ))}
+                  </select>
+                </div>
+              )}
+              {type === 'Retiro' && (
+                <div className="field">
+                  <label>Cuenta origen</label>
+                  <select
+                    name="fromAccount"
+                    value={entryFrom}
+                    onChange={(e) => setEntryFrom(e.target.value)}
+                  >
+                    {accounts.map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
                   </select>
                 </div>
               )}
@@ -2507,7 +2557,7 @@ export default function App({
                 : type === 'Pago de deuda'
                   ? 'Reduce caja. Para la moto, confirma capital e interés en PAGOS DEUDA del Excel antes de reducir el principal.'
                   : type === 'Retiro'
-                    ? 'Convierte saldo de Bancolombia a la cuenta elegida. Tu dinero disponible total no cambia.'
+                    ? 'Mueve plata entre tus cuentas. Tu dinero disponible total no cambia.'
                     : type === 'Interés'
                       ? 'Solo registra el interés real de Nu. No es salario ni un nuevo aporte.'
                       : 'Guardado seguro en la nube. Encontrarás tus registros cuando vuelvas.'}
@@ -2796,15 +2846,17 @@ export default function App({
           onClose={() => setModal(null)}
         >
           <form onSubmit={editMovementSubmit}>
-            <div className="field">
-              <label>Descripción</label>
-              <input
-                name="description"
-                required
-                maxLength={200}
-                defaultValue={editMovement.description}
-              />
-            </div>
+            {editMovement.type !== 'Retiro' && (
+              <div className="field">
+                <label>Descripción</label>
+                <input
+                  name="description"
+                  required
+                  maxLength={200}
+                  defaultValue={editMovement.description}
+                />
+              </div>
+            )}
             <div className="form-grid">
               <div className="field">
                 <label>Monto COP</label>
@@ -2829,35 +2881,51 @@ export default function App({
               </div>
             </div>
             <div className="form-grid">
-              <div className="field">
-                <label>Categoría</label>
-                <select name="category" defaultValue={editMovement.category}>
-                  {[
-                    ...new Set([
-                      ...(editMovement.type === 'Ingreso'
-                        ? ['Salario', 'Freelance', 'Monetización web', 'Negocios', 'Intereses']
-                        : editMovement.type === 'Inversión'
-                          ? ['ETF', 'Acciones', 'Otro instrumento']
-                          : categories),
-                      editMovement.category,
-                    ]),
-                  ].map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="field">
-                <label>Método de pago</label>
-                <select name="method" defaultValue={editMovement.method}>
-                  {[...new Set([...methods, editMovement.method])].map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {editMovement.type !== 'Retiro' && (
+                <div className="field">
+                  <label>Categoría</label>
+                  <select name="category" defaultValue={editMovement.category}>
+                    {[
+                      ...new Set([
+                        ...(editMovement.type === 'Ingreso'
+                          ? ['Salario', 'Freelance', 'Monetización web', 'Negocios', 'Intereses']
+                          : editMovement.type === 'Inversión'
+                            ? ['ETF', 'Acciones', 'Otro instrumento']
+                            : categories),
+                        editMovement.category,
+                      ]),
+                    ].map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {editMovement.type !== 'Retiro' && (
+                <div className="field">
+                  <label>Método de pago</label>
+                  <select name="method" defaultValue={editMovement.method}>
+                    {[...new Set([...methods, editMovement.method])].map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {editMovement.type === 'Retiro' && (
+                <div className="field">
+                  <label>Cuenta origen</label>
+                  <select name="fromAccount" defaultValue={editMovement.fromAccount || 'Bancolombia'}>
+                    {accounts.map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="field">
                 <label>Cuenta</label>
                 <select
@@ -2947,6 +3015,53 @@ export default function App({
             </div>
             <button className="button primary full submit-button" disabled={saving}>
               Guardar préstamo <Check size={17} />
+            </button>
+          </form>
+        </Modal>
+      )}
+      {modal === 'balances' && (
+        <Modal
+          title="Saldos por cuenta."
+          subtitle="Cuánto tienes en cada lugar. Bancolombia conserva el resto."
+          onClose={() => setModal(null)}
+        >
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault()
+              const d = new FormData(e.currentTarget)
+              const input: Record<string, unknown> = {}
+              for (const a of ['Efectivo', 'Caja Fuerte', 'Nequi', 'Nu']) input[a] = d.get(a)
+              if (await commit(() => saveAccountBalances(input), 'Saldos por cuenta guardados.'))
+                setModal(null)
+            }}
+          >
+            {['Efectivo', 'Caja Fuerte', 'Nequi', 'Nu'].map((a) => (
+              <div className="field" key={a}>
+                <label>{a}</label>
+                <div className="money-input">
+                  <span>$</span>
+                  <input
+                    name={a}
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="0"
+                    defaultValue={config.accountBalances?.[a] ?? ''}
+                  />
+                </div>
+              </div>
+            ))}
+            <div className="mb-4 flex items-center justify-between rounded-xl bg-[#eef4e7] px-4 py-3">
+              <span className="text-[11px] text-[#87a070]">Bancolombia (resto)</span>
+              <strong className="font-[Manrope] text-sm font-semibold text-[#5c7c46]">
+                {cop(config.openingCash - declaredAccountTotal)}
+              </strong>
+            </div>
+            <Note>
+              Estos son los saldos base de cada cuenta; los movimientos los ajustan después.
+            </Note>
+            <button className="button primary full submit-button" disabled={saving}>
+              Guardar saldos <Check size={17} />
             </button>
           </form>
         </Modal>

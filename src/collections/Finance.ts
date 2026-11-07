@@ -1,4 +1,4 @@
-import { APIError, type Access, type CollectionConfig, type Field } from 'payload'
+import { APIError, type Access, type CollectionConfig, type Field, type FieldAccess } from 'payload'
 import {
   accounts,
   accountFor,
@@ -12,6 +12,12 @@ import {
 import { movementIdentity } from '@/lib/claro/idempotency'
 
 const isAdmin: Access = ({ req }) => req.user?.collection === 'admins'
+const adminFieldUpdate: FieldAccess = ({ req }) => req.user?.collection === 'admins'
+const ownerWrite: Access = ({ req }) => {
+  if (req.user?.collection === 'admins') return true
+  if (req.user?.collection !== 'users') return false
+  return { owner: { equals: req.user.id } }
+}
 const ownerRead: Access = ({ req }) => {
   if (req.user?.collection === 'admins') return true
   if (req.user?.collection !== 'users') return false
@@ -80,29 +86,96 @@ export const FinanceWorkspaces: CollectionConfig = {
           ? { owner: { equals: req.user.id } }
           : false,
     create: isAdmin,
-    update: isAdmin,
+    update: ownerWrite,
     delete: () => false,
   },
   versions: { maxPerDoc: 30 },
   fields: [
-    { name: 'name', type: 'text', required: true },
-    { name: 'key', type: 'text', required: true, unique: true },
+    {
+      name: 'name',
+      type: 'text',
+      required: true,
+      access: { update: adminFieldUpdate },
+    },
+    {
+      name: 'key',
+      type: 'text',
+      required: true,
+      unique: true,
+      access: { update: adminFieldUpdate },
+    },
     {
       name: 'owner',
       type: 'relationship',
       relationTo: 'users',
       access: { create: () => false, update: () => false },
     },
-    { name: 'openingCash', label: 'Saldo real confirmado COP', type: 'number', required: true },
-    { name: 'balanceConfirmedOn', type: 'date', required: true },
-    { name: 'monthlyIncome', label: 'Ingreso esperado COP', type: 'number', required: true },
-    { name: 'motoPrincipal', type: 'number', required: true },
-    { name: 'motoMarketValue', type: 'number', required: true },
-    { name: 'motoRate', type: 'number', required: true },
-    { name: 'nuAdvance', type: 'number', required: true },
-    { name: 'operationalStart', type: 'text', required: true },
-    { name: 'notes', type: 'textarea' },
-    { name: 'history', label: 'Archivo histórico original (celdas preservadas)', type: 'json' },
+    {
+      name: 'openingCash',
+      label: 'Saldo real confirmado COP',
+      type: 'number',
+      required: true,
+      access: { update: adminFieldUpdate },
+    },
+    {
+      name: 'balanceConfirmedOn',
+      type: 'date',
+      required: true,
+      access: { update: adminFieldUpdate },
+    },
+    {
+      name: 'monthlyIncome',
+      label: 'Ingreso esperado COP',
+      type: 'number',
+      required: true,
+      access: { update: adminFieldUpdate },
+    },
+    {
+      name: 'motoPrincipal',
+      type: 'number',
+      required: true,
+      access: { update: adminFieldUpdate },
+    },
+    {
+      name: 'motoMarketValue',
+      type: 'number',
+      required: true,
+      access: { update: adminFieldUpdate },
+    },
+    {
+      name: 'motoRate',
+      type: 'number',
+      required: true,
+      access: { update: adminFieldUpdate },
+    },
+    {
+      name: 'nuAdvance',
+      type: 'number',
+      required: true,
+      access: { update: adminFieldUpdate },
+    },
+    {
+      name: 'operationalStart',
+      type: 'text',
+      required: true,
+      access: { update: adminFieldUpdate },
+    },
+    {
+      name: 'accountBalances',
+      label: 'Saldos base por cuenta (COP)',
+      type: 'json',
+    },
+    {
+      name: 'notes',
+      type: 'textarea',
+      access: { update: adminFieldUpdate },
+    },
+    {
+      name: 'history',
+      label: 'Archivo histórico original (celdas preservadas)',
+      type: 'json',
+      access: { update: adminFieldUpdate },
+    },
   ],
 }
 
@@ -225,6 +298,7 @@ export const FinanceMovements: CollectionConfig = {
     { name: 'category', type: 'text', required: true, maxLength: 100 },
     { name: 'method', type: 'select', required: true, options: methods },
     { name: 'account', label: 'Cuenta', type: 'select', options: accounts },
+    { name: 'fromAccount', label: 'Cuenta origen', type: 'select', options: accounts },
     { name: 'reference', type: 'text', maxLength: 100 },
     {
       name: 'balanceAfter',
@@ -319,8 +393,14 @@ export const FinanceMovements: CollectionConfig = {
           )
         if (data.type === 'Retiro de ahorro' && data.amount > s.savings)
           throw new APIError('El retiro supera tus ahorros.', 400)
-        if (data.type === 'Retiro' && data.amount > s.cashByAccount.Bancolombia)
-          throw new APIError('El retiro supera tu saldo en Bancolombia.', 400)
+        if (data.type === 'Retiro') {
+          const from =
+            data.fromAccount && accounts.includes(data.fromAccount)
+              ? data.fromAccount
+              : 'Bancolombia'
+          if (data.amount > s.cashByAccount[from])
+            throw new APIError(`El movimiento supera tu saldo en ${from}.`, 400)
+        }
         if (data.type === 'Pago de deuda' && !['NU', 'MOTO'].includes(data.reference))
           throw new APIError('Selecciona una obligación válida.', 400)
         if (
@@ -392,6 +472,7 @@ export function toMovement(d: {
   category: string
   method: string
   account?: string | null
+  fromAccount?: string | null
   reference?: string | null
   createdAt: string
   balanceAfter?: number | null
@@ -407,6 +488,7 @@ export function toMovement(d: {
     category: d.category,
     method: d.method,
     account: d.account || undefined,
+    fromAccount: d.fromAccount || undefined,
     reference: d.reference || '',
     created: d.createdAt,
     balanceAfter: d.balanceAfter,

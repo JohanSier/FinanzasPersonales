@@ -34,8 +34,19 @@ export const methods = [
   'Nequi',
   'Tarjeta Nu',
   'Efectivo',
+  'Transferencia',
+  'Otro',
 ]
-export const accounts = ['Efectivo', 'Nequi', 'Bancolombia', 'Nu']
+export const selectableMethods = methods.filter((m) => !['Transferencia', 'Otro'].includes(m))
+export const accounts = ['Efectivo', 'Caja Fuerte', 'Nequi', 'Bancolombia', 'Nu']
+export const methodForAccount = (account: string) =>
+  account === 'Bancolombia'
+    ? 'Débito Bancolombia'
+    : account === 'Nu'
+      ? 'Débito Nu'
+      : account === 'Nequi'
+        ? 'Nequi'
+        : 'Efectivo'
 export const accountFor = (method: string, account?: string | null) =>
   account && accounts.includes(account)
     ? account
@@ -66,6 +77,7 @@ export type Movement = {
   category: string
   method: string
   account?: string
+  fromAccount?: string
   reference: string
   created: string
   debtor?: string
@@ -86,6 +98,7 @@ export type FinanceConfig = {
   motoPrincipal: number
   motoMarketValue: number
   nuAdvance: number
+  accountBalances?: Record<string, number>
 }
 export type FinanceData = {
   name: string
@@ -149,16 +162,24 @@ export function summarize(
     .reduce((s, m) => s + m.amount, 0)
   const cash =
     config.openingCash + movements.reduce((s, m) => s + cashImpact(m) + (m.cashAdjustment || 0), 0)
+  const declaredAccounts = ['Efectivo', 'Caja Fuerte', 'Nequi', 'Nu']
+  const declaredTotal = declaredAccounts.reduce(
+    (a, k) => a + (config.accountBalances?.[k] || 0),
+    0,
+  )
   const cashByAccount: Record<string, number> = {
-    Efectivo: 0,
-    Nequi: 0,
-    Bancolombia: config.openingCash,
-    Nu: 0,
+    Efectivo: config.accountBalances?.Efectivo || 0,
+    'Caja Fuerte': config.accountBalances?.['Caja Fuerte'] || 0,
+    Nequi: config.accountBalances?.Nequi || 0,
+    Bancolombia: config.openingCash - declaredTotal,
+    Nu: config.accountBalances?.Nu || 0,
   }
   for (const m of movements) {
     if (m.type === 'Retiro') {
+      const from =
+        m.fromAccount && accounts.includes(m.fromAccount) ? m.fromAccount : 'Bancolombia'
       const destination = m.account && accounts.includes(m.account) ? m.account : 'Efectivo'
-      cashByAccount.Bancolombia -= m.amount
+      cashByAccount[from] -= m.amount
       cashByAccount[destination] += m.amount
       continue
     }

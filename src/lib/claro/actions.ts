@@ -172,6 +172,10 @@ export async function saveMovement(input: Movement): Promise<Result> {
           account: (input.account && accounts.includes(input.account)
             ? input.account
             : accountFor(input.method)) as FinanceMovement['account'],
+          fromAccount:
+            input.type === 'Retiro' && input.fromAccount && accounts.includes(input.fromAccount)
+              ? (input.fromAccount as FinanceMovement['fromAccount'])
+              : null,
           reference: string(input.reference, 100),
           balanceAfter: input.balanceAfter ?? null,
           reconciliationNote: string(input.reconciliationNote, 300),
@@ -230,6 +234,40 @@ export async function saveFixed(input: Fixed): Promise<Result> {
         context: { financeWrite: true },
         data: { ...data, workspace: workspace.id, recurringKey: input.id },
       })
+    return await updated()
+  } catch (e) {
+    return fail(e)
+  }
+}
+export async function saveAccountBalances(input: Record<string, unknown>): Promise<Result> {
+  try {
+    const session = await financeSession()
+    if (!session) return { ok: false, error: 'Tu sesión terminó.' }
+    const { payload, user, workspace } = session
+    const allowed = ['Efectivo', 'Caja Fuerte', 'Nequi', 'Nu']
+    const balances: Record<string, number> = {}
+    let total = 0
+    for (const key of allowed) {
+      const raw = input[key]
+      if (raw === undefined || raw === null || raw === '') continue
+      const value = Number(raw)
+      if (!Number.isSafeInteger(value) || value < 0 || value > 999999999999)
+        return { ok: false, error: 'Usa valores de pesos enteros.' }
+      balances[key] = value
+      total += value
+    }
+    if (total > workspace.openingCash)
+      return {
+        ok: false,
+        error: 'La suma de las cuentas supera tu saldo confirmado en Bancolombia.',
+      }
+    await payload.update({
+      collection: 'finance-workspaces',
+      id: workspace.id,
+      user,
+      overrideAccess: false,
+      data: { accountBalances: balances },
+    })
     return await updated()
   } catch (e) {
     return fail(e)
@@ -321,6 +359,10 @@ export async function updateMovement(input: Movement): Promise<Result> {
         account: (input.account && accounts.includes(input.account)
           ? input.account
           : accountFor(input.method)) as FinanceMovement['account'],
+        fromAccount:
+          input.fromAccount && accounts.includes(input.fromAccount)
+            ? (input.fromAccount as FinanceMovement['fromAccount'])
+            : null,
       },
     })
     return await updated()

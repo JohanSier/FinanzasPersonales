@@ -48,6 +48,8 @@ export async function loadFinanceData(): Promise<FinanceData | null> {
       motoRate: workspace.motoRate,
       nuAdvance: workspace.nuAdvance,
       balanceConfirmedOn: workspace.balanceConfirmedOn,
+      accountBalances:
+        (workspace.accountBalances as Record<string, number> | null) ?? undefined,
     },
     movements: movements.docs.map(toMovement),
     fixed: fixed.docs.map((d) => ({

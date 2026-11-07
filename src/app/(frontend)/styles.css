@@ -728,6 +728,21 @@ h1 {
 .balance-dot.efectivo {
   background: #c8ddbb;
 }
+.balance-accounts-edit {
+  cursor: pointer;
+}
+.balance-accounts-edit:hover {
+  opacity: 0.85;
+}
+.balance-accounts > div.sub-account {
+  padding-left: 14px;
+}
+.balance-accounts > div.sub-account span {
+  color: #9db489;
+}
+.balance-dot.caja-fuerte {
+  background: #d9b36a;
+}
 .balance-dot.nequi {
   background: #f2a9bd;
 }
@@ -1981,19 +1996,23 @@ input[type='checkbox'] {
 .field input,
 .field select {
   width: 100%;
-  background: #fcfdf9;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #fcfdf9
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2375905d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 15px center;
   border: 1px solid #e2e9d9;
   border-radius: 5px;
-  padding: 10px 12px;
+  padding: 10px 38px 10px 12px;
   font-size: 11px;
   outline: none;
   color: #75905d;
   min-height: 39px;
 }
 .field select.type-select {
-  padding-top: 30px;
-  padding-bottom: 30px;
-  min-height: 78px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  min-height: 56px;
 }
 .field input:focus,
 .field select:focus {
