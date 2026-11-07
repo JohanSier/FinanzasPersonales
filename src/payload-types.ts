@@ -470,7 +470,7 @@ export interface FinanceMovement {
   debtor?: string | null;
   amount: number;
   category: string;
-  method: 'Débito Bancolombia' | 'Débito Nu' | 'Nequi' | 'Tarjeta Nu' | 'Efectivo' | 'Transferencia' | 'Otro';
+  method: 'Débito Bancolombia' | 'Débito Nu' | 'Nequi' | 'Tarjeta Nu' | 'Efectivo';
   account?: ('Efectivo' | 'Nequi' | 'Bancolombia' | 'Nu') | null;
   reference?: string | null;
   balanceAfter?: number | null;

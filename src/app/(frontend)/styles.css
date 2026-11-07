@@ -729,10 +729,13 @@ h1 {
   background: #c8ddbb;
 }
 .balance-dot.nequi {
-  background: #cdb9ec;
+  background: #f2a9bd;
 }
 .balance-dot.bancolombia {
-  background: #f0b9c4;
+  background: #e3cf8b;
+}
+.balance-dot.nu {
+  background: #c3aef0;
 }
 .stat-top {
   display: flex;
