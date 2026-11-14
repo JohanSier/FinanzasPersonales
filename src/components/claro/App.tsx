@@ -228,6 +228,15 @@ export default function App({
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const s = summarize(movements, month)
   const monthly = movements.filter((m) => m.date.startsWith(month))
+  const daysUntilPayment = (f: Fixed) => {
+    if (!f.day) return Number.MAX_SAFE_INTEGER
+    const now = new Date()
+    const makeDate = (y: number, m: number) =>
+      new Date(y, m, Math.min(f.day!, new Date(y, m + 1, 0).getDate()), 23, 59, 59)
+    let next = makeDate(now.getFullYear(), now.getMonth())
+    if (next <= now) next = makeDate(now.getFullYear(), now.getMonth() + 1)
+    return Math.ceil((next.getTime() - now.getTime()) / 86400000)
+  }
   const isFixedPaid = (f: Fixed) =>
     monthly.some(
       (m) =>
@@ -1240,7 +1249,9 @@ export default function App({
                 'Estado',
                 'Acciones',
               ],
-              fixed.map((f) => [
+              [...fixed]
+                .sort((a, b) => daysUntilPayment(a) - daysUntilPayment(b))
+                .map((f) => [
                 <strong>{f.name}</strong>,
                 f.category,
                 cop(f.amount),
