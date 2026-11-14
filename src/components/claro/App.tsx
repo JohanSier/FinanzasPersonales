@@ -9,7 +9,6 @@ import {
   saveGoal,
   saveLoan,
   deleteMovement,
-  generateMonth,
   saveAccountBalances,
 } from '@/lib/claro/actions'
 import {
@@ -186,7 +185,6 @@ export default function App({
     | 'transaction'
     | 'download'
     | 'guide'
-    | 'month'
     | 'goal'
     | 'fixed'
     | 'loan'
@@ -3107,45 +3105,6 @@ export default function App({
             <LogOut size={16} /> Cerrar sesión
           </button>
         </Modal>
-      )}
-      {modal === 'month' && (
-        <Modal
-          title="Un nuevo mes. El mismo plan."
-          subtitle="Las expectativas se generan sin borrar tu historia."
-          onClose={() => setModal(null)}
-        >
-          <Note>
-            Se generarán dos nóminas esperadas y {fixed.filter((f) => f.active).length} compromisos
-            activos. Ningún ingreso se marcará como recibido.
-          </Note>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault()
-              const d = new FormData(e.currentTarget)
-              const next = String(d.get('month'))
-              if (
-                await commit(() => generateMonth(next), 'Mes guardado sin duplicar expectativas.')
-              ) {
-                setMonth(next)
-                setModal(null)
-              }
-            }}
-          >
-            <div className="field">
-              <label>Mes de operación</label>
-              <input name="month" type="month" min="2026-11" defaultValue={month} required />
-            </div>
-            <button className="button primary full submit-button" disabled={saving}>
-              Generar nuevo mes <ArrowRight size={17} />
-            </button>
-          </form>
-        </Modal>
-      )}
-      {page !== 'Resumen' && (
-        <button className="new-month-button" onClick={() => setModal('month')}>
-          <CalendarDays size={15} />
-          Generar nuevo mes
-        </button>
       )}
     </div>
   )
